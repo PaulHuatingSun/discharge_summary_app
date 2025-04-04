@@ -1,0 +1,92 @@
+{
+  "patient_id": "000",
+  "patient_demographics": {
+    "name": "Sean Doe",
+    "age": 65,
+    "gender": "Male",
+    "admission_date": "2024-03-10",
+    "expected_discharge_date": "2024-03-12"
+  },
+  "diagnoses": [
+    {
+      "date": "2024-03-11",
+      "diagnosis_code": "I2101",
+      "description": "ST elevation (STEMI) myocardial infarction involving left main coronary artery"
+    }
+  ],
+  "encounters": [
+    {
+      "date": "2024-03-10",
+      "type": "Admission",
+      "reason": "CP, SoB, v5-6 ST elevation"
+    },
+    {
+      "date": "2024-03-11",
+      "type": "ECG",
+      "findings": "v5-6 ST elevation, MONAC given"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2024-03-11",
+      "tests": [
+        {
+          "name": "Troponin T",
+          "result": "30"
+        },
+        {
+          "name": "Troponin T",
+          "result": "29"
+        }
+      ]
+    }
+  ],
+  "med_orders": [
+    {
+      "date": "2024-03-11",
+      "medication": "Morphine",
+      "dose": "2-4 mg",
+      "frequency": "As needed for pain"
+    },
+    {
+      "date": "2024-03-11",
+      "medication": "Oxygen",
+      "dose": "2-4 L/min",
+      "frequency": "If O2 sat < 90%"
+    },
+    {
+      "date": "2024-03-11",
+      "medication": "Nitroglycerin",
+      "dose": "0.4 mg",
+      "frequency": "Every 5 minutes for 3 doses if pain persists"
+    },
+    {
+      "date": "2024-03-11",
+      "medication": "Aspirin",
+      "dose": "324 mg",
+      "frequency": "Single dose, chewed"
+    }
+  ],
+  "ward_round_notes": [
+    {
+      "date": "2024-03-10",
+      "time": "Evening",
+      "note": "Patient presented w/ SoB, CP through ambulance. ECG revealed v5-6 ST elevation. Admit for STEMI."
+    },
+    {
+      "date": "2024-03-10",
+      "time": "Evening",
+      "note": "Local hospital guidelines indicate PCA. Unable to contact cath lab. Cardio team not responding to bleep.ECG shows persistent ST elevation."
+    },
+    {
+      "date": "2024-03-11",
+      "time": "Night",
+      "note": "Local hospital guidelines indicate PCA. Unable to contact cath lab. Cardio team not responding to bleep. ECG shows persistent ST elevation."
+    },
+    {
+      "date": "2024-03-12",
+      "time": "Night",
+      "note": "Patient asks to be discharged because chest pain resolved."
+    }
+  ]
+}

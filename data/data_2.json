@@ -1,0 +1,205 @@
+{
+  "patient_id": "789123",
+  "patient_demographics": {
+    "name": "Michael Thompson",
+    "age": 58,
+    "gender": "Male",
+    "admission_date": "2024-03-01",
+    "discharge_date": "2024-03-06"
+  },
+  "diagnoses": [
+    {
+      "date": "2024-03-01",
+      "diagnosis_code": "I21.0",
+      "description": "Acute transmural myocardial infarction of anterior wall"
+    }
+  ],
+  "encounters": [
+    {
+      "date": "2024-03-01",
+      "type": "Admission",
+      "reason": "Severe chest pain, radiating to left arm, shortness of breath"
+    },
+    {
+      "date": "2024-03-01",
+      "type": "ECG",
+      "findings": "ST-elevation MI (STEMI)"
+    },
+    {
+      "date": "2024-03-01",
+      "type": "PCI",
+      "description": "Percutaneous Coronary Intervention with stent placement"
+    },
+    {
+      "date": "2024-03-02",
+      "type": "Ward Round",
+      "notes": "Patient stable, no recurrent chest pain, monitoring continues"
+    },
+    {
+      "date": "2024-03-03",
+      "type": "Ward Round",
+      "notes": "Vitals stable, patient reports feeling better, troponin levels decreasing"
+    },
+    {
+      "date": "2024-03-04",
+      "type": "Ward Round",
+      "notes": "Significant improvement, discussing discharge plans and rehabilitation"
+    },
+    {
+      "date": "2024-03-05",
+      "type": "Ward Round",
+      "notes": "Discharge instructions given, medications prescribed, follow-up scheduled"
+    },
+    {
+      "date": "2024-03-06",
+      "type": "Discharge"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2024-03-01",
+      "tests": [
+        {
+          "name": "Troponin",
+          "result": "Elevated, peaking at 12h post admission"
+        },
+        {
+          "name": "CBC",
+          "result": "Within normal limits"
+        },
+        {
+          "name": "Lipid Profile",
+          "result": "Elevated LDL cholesterol"
+        }
+      ]
+    },
+    {
+      "date": "2024-03-02",
+      "tests": [
+        {
+          "name": "Troponin",
+          "result": "Beginning to decrease"
+        }
+      ]
+    },
+    {
+      "date": "2024-03-03",
+      "tests": [
+        {
+          "name": "Troponin",
+          "result": "Continues to decrease"
+        }
+      ]
+    }
+  ],
+  "med_orders": [
+    {
+      "date": "2024-03-01",
+      "medication": "Aspirin",
+      "dose": "325 mg",
+      "frequency": "Once daily"
+    },
+    {
+      "date": "2024-03-01",
+      "medication": "Clopidogrel",
+      "dose": "75 mg",
+      "frequency": "Once daily"
+    },
+    {
+      "date": "2024-03-01",
+      "medication": "IV Heparin",
+      "dose": "Adjust per protocol",
+      "frequency": "Continuous infusion"
+    },
+    {
+      "date": "2024-03-01",
+      "medication": "Nitroglycerin",
+      "dose": "0.4 mg",
+      "frequency": "Every 5 minutes PRN for chest pain"
+    },
+    {
+      "date": "2024-03-02",
+      "medication": "Beta-Blocker",
+      "dose": "Metoprolol 50 mg",
+      "frequency": "Twice daily"
+    },
+    {
+      "date": "2024-03-02",
+      "medication": "ACE Inhibitor",
+      "dose": "Lisinopril 10 mg",
+      "frequency": "Once daily"
+    },
+    {
+      "date": "2024-03-02",
+      "medication": "Statin",
+      "dose": "40 mg",
+      "frequency": "Once daily"
+    }
+  ],
+  "follow_up_care": [
+    {
+      "type": "Cardiology outpatient clinic",
+      "details": "Follow-up appointment scheduled for 2024-03-20 to assess recovery and medication management."
+    }
+  ],
+  "lifestyle_modifications": [
+    {
+      "recommendation": "Diet",
+      "details": "Adopt a heart-healthy diet low in saturated fats, cholesterol, and sodium. Increase intake of fruits, vegetables, and whole grains."
+    },
+    {
+      "recommendation": "Exercise",
+      "details": "Gradual reintroduction of physical activity, starting with light walking. Aim to build up to at least 150 minutes of moderate-intensity aerobic activity per week."
+    },
+    {
+      "recommendation": "Smoking cessation",
+      "details": "Immediate cessation of smoking. Consider nicotine replacement therapy and counseling to support quitting."
+    },
+    {
+      "recommendation": "Stress management",
+      "details": "Explore stress-reducing activities and techniques such as mindfulness, yoga, or meditation. Consider professional support if needed."
+    }
+  ],
+  "notes": [
+    {
+      "date": "2024-03-01",
+      "time": "Morning",
+      "note": "Patient admitted and PCI performed. Stable after procedure."
+    },
+    {
+      "date": "2024-03-01",
+      "time": "Evening",
+      "note": "No recurrent chest pain. Vitals stable. Continue monitoring."
+    },
+    {
+      "date": "2024-03-02",
+      "time": "Morning",
+      "note": "Patient reports feeling better. Pain management effective. Troponin levels decreasing."
+    },
+    {
+      "date": "2024-03-02",
+      "time": "Evening",
+      "note": "Stable vitals. Patient in good spirits. No complications noted."
+    },
+    {
+      "date": "2024-03-03",
+      "time": "Morning",
+      "note": "Significant improvement. Planning for rehabilitation and discharge."
+    },
+    {
+      "date": "2024-03-03",
+      "time": "Evening",
+      "note": "Discharge planning continues. Patient educated on medication regimen."
+    },
+    {
+      "date": "2024-03-04",
+      "time": "Morning",
+      "note": "Pre-discharge checks. All medications reviewed. Patient ready for discharge tomorrow."
+    },
+    {
+      "date": "2024-03-05",
+      "time": "Morning",
+      "note": "Discharge process initiated. Final checks and education completed."
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "patient_id": "456789",
+  "patient_demographics": {
+    "name": "Jane Doe",
+    "age": 65,
+    "gender": "Female",
+    "admission_date": "2024-03-10",
+    "expected_discharge_date": "2024-03-20"
+  },
+  "diagnoses": [
+    {
+      "date": "2024-03-11",
+      "diagnosis_code": "I61.9",
+      "description": "Intracerebral hemorrhage, unspecified"
+    }
+  ],
+  "encounters": [
+    {
+      "date": "2024-03-10",
+      "type": "Admission",
+      "reason": "Fall and subsequent loss of consciousness"
+    },
+    {
+      "date": "2024-03-11",
+      "type": "CT Scan",
+      "findings": "Hemorrhagic stroke identified in the right hemisphere"
+    }
+  ],
+  "labs": [
+    {
+      "date": "2024-03-11",
+      "tests": [
+        {
+          "name": "CBC",
+          "result": "Hemoglobin slightly low, WBC elevated"
+        },
+        {
+          "name": "Coagulation profile",
+          "result": "INR elevated, suggesting prolonged bleeding time"
+        }
+      ]
+    }
+  ],
+  "med_orders": [
+    {
+      "date": "2024-03-11",
+      "medication": "Mannitol",
+      "dose": "0.25 g/kg",
+      "frequency": "Every 6 hours"
+    },
+    {
+      "date": "2024-03-11",
+      "medication": "Antihypertensives",
+      "dose": "Varies",
+      "frequency": "As per BP"
+    }
+  ],
+  "ward_round_notes": [
+    {
+      "date": "2024-03-10",
+      "time": "Evening",
+      "note": "Patient experienced a fall last night, now with decreased level of consciousness. GCS recorded at 11. Slurring of speech noted."
+    },
+    {
+      "date": "2024-03-11",
+      "time": "Morning",
+      "note": "CT scan confirms hemorrhagic stroke. Starting mannitol for cerebral edema. Neurological examination: right-sided weakness, continued slurred speech, GCS 11. Patient not safe for discharge, requires close monitoring."
+    },
+    {
+      "date": "2024-03-11",
+      "time": "Evening",
+      "note": "No significant improvement in neurological status. GCS remains at 11. Patient shows signs of agitation and confusion. Safety measures in place to prevent further falls."
+    },
+    {
+      "date": "2024-03-12",
+      "time": "Morning",
+      "note": "Patient's condition remains critical. Persistent slurred speech and right-sided weakness. Discussion with family about prognosis and ongoing care needs. Patient not safe for discharge."
+    }
+  ]
+}
