@@ -56,43 +56,81 @@ streamlit run app.py
 
 ## 🔒 Privacy & Safety Implementation
 
+This app was designed to follow the **“privacy by default”** principle, ensuring that no patient-identifiable data is ever exposed to external APIs. All core logic is designed around secure redaction, localized PII restoration, and patient safety enforcement.
+
 ### 🔐 No PII Sent to LLM
 
-Before calling the LLM:
-- `name`, `age`, `gender`, `doctor name` → replaced with placeholders like `REDACTED_NAME`
-- Admission/discharge dates are retained (clinically essential, not personally identifiable)
-- Placeholders are replaced only **after** LLM output using `insert_pii()`
+Before calling the OpenAI API, the app **removes all personally identifiable information** (PII) from the patient record and replaces it with safe placeholders:
 
-### 🔍 Redaction Logic
+| Field               | Placeholder         |
+|--------------------|---------------------|
+| Patient Name       | `REDACTED_NAME`     |
+| Gender             | `REDACTED_GENDER`   |
+| Age                | `REDACTED_AGE`      |
+| Doctor's Name      | `REDACTED_DOCTOR`   |
 
-Implemented in `utils.py`:
-```python
-REDACTED_NAME
-REDACTED_AGE
-REDACTED_GENDER
-REDACTED_DOCTOR
-```
+✅ These placeholders remain throughout the entire prompt construction and LLM response.  
+✅ The redacted prompt is **the only thing sent to OpenAI’s API**.  
+✅ Admission and discharge dates are retained, as they are clinically relevant and not uniquely identifying.
 
-### ✅ Identified View Only Restores PII Locally
+### 🔍 Redaction & Reinsertion Logic
 
-PII is inserted using:
+Located in `utils.py`, the redaction logic:
+
+- Makes a **deep copy** of the original patient data
+- Redacts PII fields before prompt generation
+- Keeps original data locally
+- Uses a dedicated `insert_pii()` function to re-populate the summary **only after the LLM has responded**, ensuring data never leaves the local machine
+
 ```python
 summary_with_pii = insert_pii(summary_redacted, patient_data)
 ```
 
-### 🚫 Discharge Safeguard
+This happens **only** in the Identified View. De-Identified View always keeps placeholders.
 
-Before generation:
+### 🧠 View Modes (User-Controlled Privacy)
+
+Users can toggle between two privacy modes:
+
+- **🔒 De-Identified View**: Summary with redacted placeholders only. This is the default mode.
+- **🧑 Identified View**: Summary with personal details restored from the original JSON — shown only in the UI, never sent or logged externally.
+
+### 🔐 Dual Logging
+
+- `log_deidentified.log`: Contains only placeholder-based summaries and safe metadata
+- `log_identified.log`: Logs PII-containing output, but only locally
+- Logs include prompt(s), summary, LLM highlights, safety status, and manual evaluation data
+
+### 🛡️ Discharge Safety Enforcement (Hard Stop)
+
+To prevent medically unsafe discharge summaries from being generated, the app checks for red-flag conditions in clinical notes.
+
+In `utils.py`:
+
 ```python
-if not is_safe_for_discharge(patient_data):
+if not is_safe_for_discharge(data):
     st.error("Patient is not medically fit for discharge.")
     st.stop()
 ```
 
-Detection checks clinical notes for:
-```
-"not safe for discharge", "condition remains critical", etc.
-```
+#### How the Safety Check Works:
+
+- It scans both `notes` and `ward_round_notes` fields
+- Searches for phrases like:
+  - `not safe for discharge`
+  - `condition remains critical`
+  - `unfit for discharge`
+  - `requires close monitoring`
+
+If matched, summary generation is blocked.
+
+### ✅ Additional Safeguards Implemented
+
+- **PII Logging Segregation**: Logs from Identified and De-Identified modes are separated
+- **PII Placeholder Consistency**: LLM is explicitly instructed not to alter placeholders
+- **Local Editing Only**: Users may edit the summary locally, but no edited text is sent back to the LLM
+- **Manual Evaluation Checklist**: Users confirm privacy, accuracy, and structure in each summary before finalizing
+- **Robust Fallbacks**: If the discharging doctor is not found in notes, the system falls back to `"Discharging Doctor"`
 
 ---
 
