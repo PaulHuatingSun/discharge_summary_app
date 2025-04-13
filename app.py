@@ -2,132 +2,187 @@ import os
 import streamlit as st
 import textstat
 import logging
+import json
 import re
-from summary_generator import load_patient_data, get_discharge_summary
+from datetime import datetime
+from openai import OpenAIError
+from summary_generator import (
+    load_patient_data,
+    get_discharge_summary,
+    extract_highlights,
+    validate_discharge_safety,
+)
 from utils import is_safe_for_discharge, redact_pii, insert_pii, passes_specificity_check
 
+# --- App Config ---
 st.set_page_config(page_title="Discharge Summary Generator", layout="wide")
 st.title("🏥 LLM-Powered Discharge Summary Generator")
 
-logging.basicConfig(filename="logs/user_prompt_log.log", level=logging.INFO)
+# --- Logging ---
+logging.basicConfig(
+    filename="logs/user_prompt_log.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
-# Sidebar
+# --- Sidebar: API key and model ---
 with st.sidebar:
     st.header("⚙️ Settings")
     api_key = st.text_input("🔑 OpenAI API Key", type="password")
     model_name = st.selectbox("🧠 Model", ["gpt-3.5-turbo", "gpt-4"])
     temperature = st.slider("🌡️ Temperature", 0.0, 1.0, 0.6)
-    mode = st.radio("🛠️ Mode", ["Structured Patient Data", "Manual Prompt (with data)"])
 
-# ----------- STRUCTURED MODE -----------
-if mode == "Structured Patient Data":
-    st.subheader("📂 Generate Summary from Patient Record")
-    json_files = [f for f in os.listdir("data") if f.endswith(".json")]
-    selected_file = st.selectbox("Select patient data file", json_files)
-    data_path = os.path.join("data", selected_file)
+# --- File input ---
+st.subheader("📂 Generate Summary from Patient Record")
+json_files = [f for f in os.listdir("data") if f.endswith(".json")]
+selected_file = st.selectbox("Select patient data file", json_files)
+data_path = os.path.join("data", selected_file)
 
-    # Load the original (unredacted) patient data
-    patient_data = load_patient_data(data_path)
+# --- Load and redact patient data ---
+patient_data = load_patient_data(data_path)
+redacted_data = redact_pii(patient_data)
 
-    # Redact a separate copy to send to the LLM
-    redacted_data = redact_pii(patient_data)
+st.radio("Prompt Method", ["Few-shot with Chain-of-Thought reasoning"], index=0, disabled=True)
 
-    shot_type = st.radio("Prompt Type", ["Zero-shot", "Few-shot (includes example)"])
-    use_few_shot = shot_type == "Few-shot (includes example)"
+# --- User input for LLM instruction ---
+additional_prompt = st.text_area(
+    "💬 Required: Enter a prompt to guide the LLM",
+    placeholder="E.g., Write a discharge summary suitable for patients and clinicians.",
+    height=100,
+)
 
-    additional_prompt = st.text_area(
-        "💬 Optional: Add additional instructions to the LLM",
-        placeholder="E.g., write in plain English, avoid abbreviations",
-        height=100,
-    )
+generate_btn = st.button("📝 Generate Summary")
 
-    if st.button("📝 Generate Summary"):
-        if not api_key:
-            st.warning("Please enter your OpenAI API key.")
-            st.stop()
+# --- Session state ---
+if "final_summary" not in st.session_state:
+    st.session_state.final_summary = ""
+if "edit_mode" not in st.session_state:
+    st.session_state.edit_mode = False
+if "highlights" not in st.session_state:
+    st.session_state.highlights = []
+if "safety_validation" not in st.session_state:
+    st.session_state.safety_validation = ""
 
-        if not is_safe_for_discharge(patient_data):
-            st.error("❌ Patient is not medically fit for discharge.")
-            st.stop()
+# --- Generate summary with validation ---
+if generate_btn:
+    if not api_key:
+        st.warning("Please enter your OpenAI API key.")
+        st.stop()
+    if not additional_prompt.strip():
+        st.warning("Please provide a prompt before generating the summary.")
+        st.stop()
+    if not is_safe_for_discharge(patient_data):
+        st.error("❌ Patient is not medically fit for discharge.")
+        st.stop()
 
-        with st.spinner("Generating summary..."):
+    try:
+        with st.spinner("Generating discharge summary..."):
             summary = get_discharge_summary(
                 redacted_data,
                 api_key,
-                few_shot=use_few_shot,
+                few_shot=True,
                 model=model_name,
                 additional_instruction=additional_prompt,
             )
-
-            # Insert real PII after generation
             summary = insert_pii(summary, patient_data)
-
+            st.session_state.final_summary = summary
+            st.session_state.edit_mode = False
             st.success("✅ Summary generated.")
-            st.text_area("📄 Discharge Summary", summary, height=400)
 
-            readability = textstat.flesch_reading_ease(summary)
-            st.metric("📈 Readability (Flesch Score)", readability)
+        # Extract highlights (2nd API call)
+        with st.spinner("Extracting key highlights..."):
+            st.session_state.highlights = extract_highlights(summary, api_key)
 
-            if not passes_specificity_check(summary):
-                st.warning("⚠️ May lack specific clinical instructions (follow-up, dosage, etc.)")
+        # Validate discharge safety (3rd API call)
+        with st.spinner("Running discharge safety check..."):
+            st.session_state.safety_validation = validate_discharge_safety(summary, api_key)
 
-            st.markdown("### 🧪 Evaluation Checklist")
-            clarity = st.checkbox("✅ Clarity and completeness")
-            specificity = st.checkbox("✅ Specific care & follow-up details")
-            safety = st.checkbox("✅ Medically appropriate for discharge")
-            privacy = st.checkbox("✅ No PII passed to LLM")
+        # Logging
+        logging.info("=" * 60 + f"\n[SUMMARY GENERATED] {datetime.now()}\n" + "-" * 60)
+        logging.info(f"FILE: {selected_file}")
+        logging.info(f"USER PROMPT:\n{additional_prompt.strip()}")
+        logging.info(f"OUTPUT:\n{summary}")
+        logging.info(f"HIGHLIGHTS:\n{st.session_state.highlights}")
+        logging.info(f"SAFETY VALIDATION:\n{st.session_state.safety_validation}")
+        logging.info("=" * 60)
 
-            if st.button("✅ Submit Evaluation"):
-                logging.info(
-                    f"[STRUCTURED] File: {selected_file} | Prompt Type: {shot_type} | Extra Prompt: {additional_prompt}\nSUMMARY:\n{summary}"
-                )
-                logging.info(
-                    f"Checklist - Clarity: {clarity}, Specificity: {specificity}, Safety: {safety}, Privacy: {privacy}"
-                )
-                st.success("✅ Feedback submitted and logged.")
-# ----------- MANUAL PROMPT MODE -----------
-else:
-    st.subheader("✍️ Manual Prompt Input with Patient Data")
+    except OpenAIError as e:
+        st.error("❌ Invalid API key or OpenAI service error. Please check your key and try again.")
+        logging.error(f"OpenAI API Error: {str(e)}")
+        st.stop()
 
-    json_files = [f for f in os.listdir("data") if f.endswith(".json")]
-    selected_file = st.selectbox("📂 Select patient data file", json_files)
-    filepath = os.path.join("data", selected_file)
-    patient_data = load_patient_data(filepath)
+# --- Summary view + editing ---
+if st.session_state.final_summary:
+    st.markdown("### 📄 Discharge Summary")
 
-    user_prompt = st.text_area(
-        "📝 Ask a question or give instructions (optional)",
-        placeholder="E.g., Write a discharge summary, or What medications was the patient on?",
-        height=150
-    )
+    if st.session_state.edit_mode:
+        edited = st.text_area("📝 Edit Discharge Summary", st.session_state.final_summary, height=500)
+        if st.button("💾 Save Changes"):
+            st.session_state.final_summary = edited
+            st.session_state.edit_mode = False
+            st.success("✅ Summary updated.")
+    else:
+        display_text = st.session_state.final_summary
 
-    if st.button("🧠 Run Prompt"):
-        if not api_key:
-            st.warning("Please enter your OpenAI API key.")
-            st.stop()
+        # Bold section headers
+        section_headers = [
+            "Patient Information:", "Diagnosis:", "Summary of Care:",
+            "Disposition:", "Follow-up Plan:", "Contact:"
+        ]
+        for header in section_headers:
+            display_text = re.sub(rf"(?<!\*)({re.escape(header)})", r"**\1**", display_text)
 
-        # If user didn't write anything, fall back to a default prompt
-        if not user_prompt.strip():
-            user_prompt = "Write a clear and complete discharge summary for the patient described in this data."
+        # Bold phrases from LLM-extracted highlights
+        for item in st.session_state.highlights:
+            phrase = re.escape(item["text"])
+            display_text = re.sub(rf"(?<!\*)({phrase})(?!\*)", r"**\1**", display_text, flags=re.IGNORECASE)
 
-        with st.spinner("Calling OpenAI..."):
-            from openai import OpenAI
-            client = OpenAI(api_key=api_key)
+        st.markdown(display_text, unsafe_allow_html=True)
 
-            response = client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": "You are a helpful medical assistant."},
-                    {"role": "user", "content": f"{user_prompt}\n\nPatient Data:\n{patient_data}"}
-                ],
-                temperature=temperature,
-            )
+        if st.button("✏️ Edit Summary"):
+            st.session_state.edit_mode = True
 
-            result = response.choices[0].message.content
+    # --- Evaluation Metrics ---
+    st.markdown("### 🧪 Evaluation Results")
 
-            st.success("✅ Response generated.")
-            st.markdown("### 📄 LLM Output")
-            st.markdown(result)
+    # Readability
+    readability = textstat.flesch_reading_ease(st.session_state.final_summary)
+    st.metric("📖 Readability (Flesch Score)", readability)
 
-            logging.info(
-                f"[MANUAL MODE] File: {selected_file}\nPROMPT:\n{user_prompt}\nRESPONSE:\n{result}"
-            )
+    # Highlight coverage
+    expected_categories = {
+        "diagnosis", "medication", "followup_action", "discharge_criteria", "recovery_status"
+    }
+    found_categories = set([item["category"] for item in st.session_state.highlights])
+    coverage_score = len(expected_categories & found_categories) / len(expected_categories)
+    st.progress(coverage_score, text=f"🧪 Highlight Coverage: {int(coverage_score * 100)}%")
+
+    # Safety validation
+    if st.session_state.safety_validation:
+        st.markdown("### 🛡️ Discharge Safety Validation")
+        st.markdown(st.session_state.safety_validation)
+
+    # Manual evaluation checklist
+    st.markdown("### 📝 Evaluation Checklist")
+    clarity = st.checkbox("✅ Clarity and completeness")
+    specificity = st.checkbox("✅ Specific care & follow-up details")
+    correctness = st.checkbox("✅ Information appears accurate and medically sound")
+    sections = st.checkbox("✅ Includes all required sections (Diagnosis, Summary, Disposition, etc.)")
+    no_pii = st.checkbox("✅ No PII passed to LLM")
+
+    if st.button("✅ Submit Evaluation"):
+        feedback_log = {
+            "clarity": clarity,
+            "specificity": specificity,
+            "correctness": correctness,
+            "sections_present": sections,
+            "no_pii": no_pii,
+            "highlight_coverage": f"{int(coverage_score * 100)}%",
+            "readability_score": readability,
+            "safety_validation": st.session_state.safety_validation,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "filename": selected_file,
+        }
+        logging.info("[EVALUATION SUBMITTED]")
+        logging.info(json.dumps(feedback_log, indent=2))
+        st.success("✅ Evaluation submitted and logged.")
