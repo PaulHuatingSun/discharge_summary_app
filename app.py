@@ -12,18 +12,14 @@ from summary_generator import (
     extract_highlights,
     validate_discharge_safety,
 )
-from utils import is_safe_for_discharge, redact_pii, insert_pii, passes_specificity_check
+from utils import is_safe_for_discharge, redact_pii, insert_pii
+
+# --- Constants ---
+DEFAULT_SYSTEM_PROMPT = "Write a clear and complete discharge summary for the patient described in this data."
 
 # --- App Config ---
 st.set_page_config(page_title="Discharge Summary Generator", layout="wide")
 st.title("🏥 LLM-Powered Discharge Summary Generator")
-
-# --- Logging ---
-logging.basicConfig(
-    filename="logs/user_prompt_log.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
 
 # --- Sidebar: API key and model ---
 with st.sidebar:
@@ -35,154 +31,181 @@ with st.sidebar:
 # --- File input ---
 st.subheader("📂 Generate Summary from Patient Record")
 json_files = [f for f in os.listdir("data") if f.endswith(".json")]
-selected_file = st.selectbox("Select patient data file", json_files)
-data_path = os.path.join("data", selected_file)
 
-# --- Load and redact patient data ---
+if "last_selected_file" not in st.session_state:
+    st.session_state.last_selected_file = ""
+
+selected_file = st.selectbox("Select patient data file", json_files)
+
+# Clear state when switching files
+if selected_file != st.session_state.last_selected_file:
+    st.session_state.last_selected_file = selected_file
+    st.session_state.summary_redacted = ""
+    st.session_state.summary_with_pii = ""
+    st.session_state.highlights = []
+    st.session_state.safety_validation = ""
+    for key in list(st.session_state.keys()):
+        if key.endswith("_edit_mode") or key.endswith("_editor"):
+            del st.session_state[key]
+
+data_path = os.path.join("data", selected_file)
 patient_data = load_patient_data(data_path)
 redacted_data = redact_pii(patient_data)
 
+# --- Prompt input ---
 st.radio("Prompt Method", ["Few-shot with Chain-of-Thought reasoning"], index=0, disabled=True)
-
-# --- User input for LLM instruction ---
 additional_prompt = st.text_area(
-    "💬 Required: Enter a prompt to guide the LLM",
-    placeholder="E.g., Write a discharge summary suitable for patients and clinicians.",
+    "📝 Optional: Add extra instruction to guide the LLM",
+    placeholder="E.g., Emphasize follow-up plans if any...",
     height=100,
 )
-
+st.caption("💡 If left blank, the summary will be generated with a default instruction.")
 generate_btn = st.button("📝 Generate Summary")
-
-# --- Session state ---
-if "final_summary" not in st.session_state:
-    st.session_state.final_summary = ""
-if "edit_mode" not in st.session_state:
-    st.session_state.edit_mode = False
+# --- Session state initialization ---
+if "summary_redacted" not in st.session_state:
+    st.session_state.summary_redacted = ""
+if "summary_with_pii" not in st.session_state:
+    st.session_state.summary_with_pii = ""
 if "highlights" not in st.session_state:
     st.session_state.highlights = []
 if "safety_validation" not in st.session_state:
     st.session_state.safety_validation = ""
 
-# --- Generate summary with validation ---
+# --- Generate Summary ---
 if generate_btn:
     if not api_key:
         st.warning("Please enter your OpenAI API key.")
-        st.stop()
-    if not additional_prompt.strip():
-        st.warning("Please provide a prompt before generating the summary.")
         st.stop()
     if not is_safe_for_discharge(patient_data):
         st.error("❌ Patient is not medically fit for discharge.")
         st.stop()
 
     try:
+        combined_prompt = DEFAULT_SYSTEM_PROMPT
+        if additional_prompt.strip():
+            combined_prompt += f"\n\n{additional_prompt.strip()}"
+
         with st.spinner("Generating discharge summary..."):
-            summary = get_discharge_summary(
+            summary_redacted = get_discharge_summary(
                 redacted_data,
                 api_key,
                 few_shot=True,
                 model=model_name,
-                additional_instruction=additional_prompt,
+                additional_instruction=combined_prompt,
             )
-            summary = insert_pii(summary, patient_data)
-            st.session_state.final_summary = summary
-            st.session_state.edit_mode = False
-            st.success("✅ Summary generated.")
+            summary_with_pii = insert_pii(summary_redacted, patient_data)
+            highlights = extract_highlights(summary_redacted, api_key)
+            safety = validate_discharge_safety(summary_redacted, api_key)
 
-        # Extract highlights (2nd API call)
-        with st.spinner("Extracting key highlights..."):
-            st.session_state.highlights = extract_highlights(summary, api_key)
+            st.session_state.summary_redacted = summary_redacted
+            st.session_state.summary_with_pii = summary_with_pii
+            st.session_state.highlights = highlights
+            st.session_state.safety_validation = safety
 
-        # Validate discharge safety (3rd API call)
-        with st.spinner("Running discharge safety check..."):
-            st.session_state.safety_validation = validate_discharge_safety(summary, api_key)
+        # --- Logging (Private) ---
+        with open("logs/log_private.log", "a") as f:
+            f.write("="*60 + f"\n[SUMMARY GENERATED] {datetime.now()}\n" + "-"*60 + "\n")
+            f.write(f"FILE: {selected_file}\n")
+            f.write(f"SYSTEM PROMPT:\n{DEFAULT_SYSTEM_PROMPT}\n")
+            f.write(f"USER PROMPT:\n{additional_prompt.strip() or '[None]'}\n")
+            f.write(f"FULL PROMPT SENT TO LLM:\n{combined_prompt}\n")
+            f.write(f"OUTPUT (REDACTED):\n{summary_redacted}\n")
+            f.write(f"HIGHLIGHTS:\n{json.dumps(highlights)}\n")
+            f.write(f"SAFETY VALIDATION:\n{safety}\n")
+            f.write("="*60 + "\n")
 
-        # Logging
-        logging.info("=" * 60 + f"\n[SUMMARY GENERATED] {datetime.now()}\n" + "-" * 60)
-        logging.info(f"FILE: {selected_file}")
-        logging.info(f"USER PROMPT:\n{additional_prompt.strip()}")
-        logging.info(f"OUTPUT:\n{summary}")
-        logging.info(f"HIGHLIGHTS:\n{st.session_state.highlights}")
-        logging.info(f"SAFETY VALIDATION:\n{st.session_state.safety_validation}")
-        logging.info("=" * 60)
+        # --- Logging (Personal) ---
+        with open("logs/log_personal.log", "a") as f:
+            f.write("="*60 + f"\n[SUMMARY GENERATED] {datetime.now()}\n" + "-"*60 + "\n")
+            f.write(f"FILE: {selected_file}\n")
+            f.write(f"SYSTEM PROMPT:\n{DEFAULT_SYSTEM_PROMPT}\n")
+            f.write(f"USER PROMPT:\n{additional_prompt.strip() or '[None]'}\n")
+            f.write(f"FULL PROMPT SENT TO LLM:\n{combined_prompt}\n")
+            f.write(f"OUTPUT (WITH PII):\n{summary_with_pii}\n")
+            f.write(f"HIGHLIGHTS:\n{json.dumps(highlights)}\n")
+            f.write(f"SAFETY VALIDATION:\n{safety}\n")
+            f.write("="*60 + "\n")
 
     except OpenAIError as e:
-        st.error("❌ Invalid API key or OpenAI service error. Please check your key and try again.")
-        logging.error(f"OpenAI API Error: {str(e)}")
+        st.error("❌ OpenAI API Error. Please check your key and try again.")
         st.stop()
+# --- Choose view mode (secure rendering) ---
+st.subheader("🔒 Choose Display Mode")
+view_mode = st.selectbox("Display Format", ["Private Mode", "Personal Mode"])
 
-# --- Summary view + editing ---
-if st.session_state.final_summary:
-    st.markdown("### 📄 Discharge Summary")
+# --- Unified rendering function ---
+def render_summary(tab_name, state_key, log_file):
+    summary_text = st.session_state.get(state_key, "")
+    st.markdown(f"### {tab_name} Summary")
 
-    if st.session_state.edit_mode:
-        edited = st.text_area("📝 Edit Discharge Summary", st.session_state.final_summary, height=500)
-        if st.button("💾 Save Changes"):
-            st.session_state.final_summary = edited
-            st.session_state.edit_mode = False
-            st.success("✅ Summary updated.")
+    if not summary_text:
+        st.info("No summary generated yet.")
+        return
+
+    edit_key = f"{tab_name}_edit_mode"
+    if edit_key not in st.session_state:
+        st.session_state[edit_key] = False
+
+    if st.session_state[edit_key]:
+        new_text = st.text_area("📝 Edit Summary", summary_text, height=500, key=f"{tab_name}_editor")
+        if st.button("💾 Save", key=f"{tab_name}_save"):
+            st.session_state[state_key] = new_text
+            st.session_state[edit_key] = False
+            st.rerun()
     else:
-        display_text = st.session_state.final_summary
-
-        # Bold section headers
-        section_headers = [
-            "Patient Information:", "Diagnosis:", "Summary of Care:",
-            "Disposition:", "Follow-up Plan:", "Contact:"
-        ]
-        for header in section_headers:
-            display_text = re.sub(rf"(?<!\*)({re.escape(header)})", r"**\1**", display_text)
-
-        # Bold phrases from LLM-extracted highlights
+        display_text = summary_text
+        for section in ["Patient Information:", "Diagnosis:", "Summary of Care:", "Disposition:", "Follow-up Plan:", "Contact:"]:
+            display_text = re.sub(rf"(?<!\*)({re.escape(section)})", r"**\1**", display_text)
         for item in st.session_state.highlights:
             phrase = re.escape(item["text"])
             display_text = re.sub(rf"(?<!\*)({phrase})(?!\*)", r"**\1**", display_text, flags=re.IGNORECASE)
 
         st.markdown(display_text, unsafe_allow_html=True)
 
-        if st.button("✏️ Edit Summary"):
-            st.session_state.edit_mode = True
+        if st.button("✏️ Edit", key=f"{tab_name}_edit_btn"):
+            st.session_state[edit_key] = True
 
-    # --- Evaluation Metrics ---
-    st.markdown("### 🧪 Evaluation Results")
+    # --- Evaluation ---
+    st.markdown("### 🧪 Evaluation Metrics")
+    readability = textstat.flesch_reading_ease(summary_text)
+    st.metric("📖 Readability", f"{readability:.2f}")
 
-    # Readability
-    readability = textstat.flesch_reading_ease(st.session_state.final_summary)
-    st.metric("📖 Readability (Flesch Score)", readability)
+    expected = {"diagnosis", "medication", "followup_action", "discharge_criteria", "recovery_status"}
+    actual = {item["category"] for item in st.session_state.highlights}
+    coverage = len(expected & actual) / len(expected)
+    st.progress(coverage, text=f"Highlight Coverage: {int(coverage * 100)}%")
 
-    # Highlight coverage
-    expected_categories = {
-        "diagnosis", "medication", "followup_action", "discharge_criteria", "recovery_status"
-    }
-    found_categories = set([item["category"] for item in st.session_state.highlights])
-    coverage_score = len(expected_categories & found_categories) / len(expected_categories)
-    st.progress(coverage_score, text=f"🧪 Highlight Coverage: {int(coverage_score * 100)}%")
-
-    # Safety validation
     if st.session_state.safety_validation:
-        st.markdown("### 🛡️ Discharge Safety Validation")
+        st.markdown("### 🛡️ Safety Validation")
         st.markdown(st.session_state.safety_validation)
 
-    # Manual evaluation checklist
-    st.markdown("### 📝 Evaluation Checklist")
-    clarity = st.checkbox("✅ Clarity and completeness")
-    specificity = st.checkbox("✅ Specific care & follow-up details")
-    correctness = st.checkbox("✅ Information appears accurate and medically sound")
-    sections = st.checkbox("✅ Includes all required sections (Diagnosis, Summary, Disposition, etc.)")
-    no_pii = st.checkbox("✅ No PII passed to LLM")
+    st.markdown("### ✅ Evaluation Checklist")
+    clarity = st.checkbox(f"{tab_name} - Clarity")
+    specificity = st.checkbox(f"{tab_name} - Specificity")
+    accuracy = st.checkbox(f"{tab_name} - Medically Accurate")
+    sections = st.checkbox(f"{tab_name} - Has All Sections")
+    no_pii = st.checkbox(f"{tab_name} - No PII sent to LLM")
 
-    if st.button("✅ Submit Evaluation"):
-        feedback_log = {
+    if st.button(f"📩 Submit Evaluation ({tab_name})", key=f"{tab_name}_submit"):
+        eval_data = {
+            "tab": tab_name,
             "clarity": clarity,
             "specificity": specificity,
-            "correctness": correctness,
+            "correctness": accuracy,
             "sections_present": sections,
             "no_pii": no_pii,
-            "highlight_coverage": f"{int(coverage_score * 100)}%",
+            "highlight_coverage": f"{int(coverage * 100)}%",
             "readability_score": readability,
             "safety_validation": st.session_state.safety_validation,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "filename": selected_file,
+            "filename": st.session_state.last_selected_file,
         }
-        logging.info("[EVALUATION SUBMITTED]")
-        logging.info(json.dumps(feedback_log, indent=2))
-        st.success("✅ Evaluation submitted and logged.")
+        with open(f"logs/{log_file}", "a") as f:
+            f.write(json.dumps(eval_data, indent=2) + "\n")
+        st.success("✅ Evaluation logged.")
+
+# --- Render the selected mode only ---
+if view_mode == "Private Mode":
+    render_summary("Private", "summary_redacted", "log_private.log")
+elif view_mode == "Personal Mode":
+    render_summary("Personal", "summary_with_pii", "log_personal.log")
