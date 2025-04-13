@@ -1,0 +1,146 @@
+============================================================
+[SUMMARY GENERATED] 2025-04-13 17:10:00.526756
+------------------------------------------------------------
+FILE: data.json
+SYSTEM PROMPT:
+Write a clear and complete discharge summary for the patient described in this data.
+USER PROMPT:
+[None]
+FULL PROMPT SENT TO LLM:
+Write a clear and complete discharge summary for the patient described in this data.
+OUTPUT (REDACTED):
+**Patient Information:**  
+REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER who was admitted to our facility on 2024-02-10.
+
+**Diagnosis:**  
+The patient was diagnosed with lobar pneumonia, unspecified organism (ICD-10: J18.1).
+
+**Summary of Care:**  
+Upon admission, REDACTED_NAME presented with symptoms indicative of pneumonia. Empirical antibiotic therapy was initiated, which included intravenous Amoxicillin. The patient showed signs of improvement by the second day, with declining CRP levels indicative of a reduction in inflammation. The patient's temperature normalized and oxygen saturation levels stabilized by the third day. Given the stable condition and improvement, the decision was made to switch to oral antibiotics on the fourth day. By the fifth day, the patient's condition had significantly improved, with further reduction in CRP and WBC levels, indicating successful treatment of the infection.
+
+**Disposition:**  
+On 2024-02-14, REDACTED_NAME was deemed medically fit for discharge. The patient's condition had improved substantially with the treatment administered during the hospital stay.
+
+**Follow-up Plan:**  
+The patient was discharged with instructions to continue oral antibiotics for another 5 days. A follow-up appointment has been scheduled in the outpatient clinic two weeks post-discharge to monitor recovery and ensure complete resolution of the infection.
+
+**Contact:**  
+Should any concerns arise, the patient or their caregivers are advised to contact our clinic.  
+Sincerely,  
+REDACTED_DOCTOR
+HIGHLIGHTS:
+[{"text": "REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER", "category": "patient_info"}, {"text": "The patient was diagnosed with lobar pneumonia, unspecified organism (ICD-10: J18.1)", "category": "diagnosis"}, {"text": "Empirical antibiotic therapy was initiated, which included intravenous Amoxicillin", "category": "medication"}, {"text": "The patient showed signs of improvement by the second day, with declining CRP levels indicative of a reduction in inflammation", "category": "clinical_trend"}, {"text": "The patient's temperature normalized and oxygen saturation levels stabilized by the third day", "category": "investigation_result"}, {"text": "By the fifth day, the patient's condition had significantly improved, with further reduction in CRP and WBC levels, indicating successful treatment of the infection", "category": "lab_result"}, {"text": "On 2024-02-14, REDACTED_NAME was deemed medically fit for discharge", "category": "discharge_criteria"}, {"text": "The patient's condition had improved substantially with the treatment administered during the hospital stay", "category": "recovery_status"}, {"text": "The patient was discharged with instructions to continue oral antibiotics for another 5 days", "category": "followup_action"}, {"text": "A follow-up appointment has been scheduled in the outpatient clinic two weeks post-discharge to monitor recovery and ensure complete resolution of the infection", "category": "followup_timing"}, {"text": "Should any concerns arise, the patient or their caregivers are advised to contact our clinic", "category": "red_flag_instruction"}]
+SAFETY VALIDATION:
+Yes, the patient is medically safe to discharge. The patient's condition has significantly improved with treatment, as indicated by declining CRP and WBC levels, normalized temperature, and stabilized oxygen saturation levels. The patient has been switched to oral antibiotics and has a follow-up appointment scheduled to monitor recovery.
+============================================================
+{
+  "tab": "De-Identified",
+  "clarity": true,
+  "specificity": true,
+  "correctness": true,
+  "sections_present": true,
+  "no_pii": true,
+  "highlight_coverage": "100%",
+  "readability_score": 21.6,
+  "safety_validation": "Yes, the patient is medically safe to discharge. The patient's condition has significantly improved with treatment, as indicated by declining CRP and WBC levels, normalized temperature, and stabilized oxygen saturation levels. The patient has been switched to oral antibiotics and has a follow-up appointment scheduled to monitor recovery.",
+  "timestamp": "2025-04-13 17:10:12",
+  "filename": "data.json"
+}
+============================================================
+[SUMMARY GENERATED] 2025-04-13 17:10:49.318202
+------------------------------------------------------------
+FILE: data_2.json
+SYSTEM PROMPT:
+Write a clear and complete discharge summary for the patient described in this data.
+USER PROMPT:
+[None]
+FULL PROMPT SENT TO LLM:
+Write a clear and complete discharge summary for the patient described in this data.
+OUTPUT (REDACTED):
+**Patient Information:**  
+REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER who was admitted on 2024-03-01 and discharged on 2024-03-05.
+
+**Diagnosis:**  
+Acute transmural myocardial infarction of the anterior wall.
+
+**Summary of Care:**  
+The patient was admitted with a myocardial infarction and underwent successful percutaneous coronary intervention (PCI) on the day of admission. The patient's vitals remained stable throughout the hospital stay. Post-procedure, the patient reported relief from chest pain and improved overall wellbeing. The patient's troponin levels, a marker of heart damage, showed a decreasing trend, indicating successful treatment of the myocardial infarction. Pain management was effective and the patient was in good spirits. No complications were noted. The patient was educated about the medication regimen as part of the discharge planning process.
+
+**Disposition:**  
+At discharge, the patient was stable, pain-free, and ready for the next steps. The patient was discharged to home care with a plan for rehabilitation and a comprehensive medication regimen.
+
+**Follow-up Plan:**  
+The patient will continue the prescribed medication regimen at home. This includes Aspirin, Clopidogrel, Heparin, Nitroglycerin, Metoprolol, Lisinopril, and a Statin. The patient has been advised to follow up regularly with their primary care physician and to report any chest pain or other concerning symptoms immediately.
+
+**Contact:**  
+For any concerns, contact our clinic.  
+Sincerely,  
+REDACTED_DOCTOR
+HIGHLIGHTS:
+[{"text": "REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER who was admitted on 2024-03-01 and discharged on 2024-03-05", "category": "patient_info"}, {"text": "Acute transmural myocardial infarction of the anterior wall", "category": "diagnosis"}, {"text": "underwent successful percutaneous coronary intervention (PCI) on the day of admission", "category": "clinical_trend"}, {"text": "The patient's vitals remained stable throughout the hospital stay", "category": "clinical_trend"}, {"text": "The patient's troponin levels, a marker of heart damage, showed a decreasing trend", "category": "lab_result"}, {"text": "At discharge, the patient was stable, pain-free, and ready for the next steps", "category": "discharge_criteria"}, {"text": "The patient was discharged to home care with a plan for rehabilitation and a comprehensive medication regimen", "category": "recovery_status"}, {"text": "The patient will continue the prescribed medication regimen at home. This includes Aspirin, Clopidogrel, Heparin, Nitroglycerin, Metoprolol, Lisinopril, and a Statin", "category": "followup_action"}, {"text": "The patient has been advised to follow up regularly with their primary care physician and to report any chest pain or other concerning symptoms immediately", "category": "red_flag_instruction"}]
+SAFETY VALIDATION:
+Yes, the patient is medically safe to discharge. The patient underwent successful treatment for their myocardial infarction, showed improvement in symptoms, and remained stable throughout their hospital stay. They have been educated about their medication regimen and have a follow-up plan in place.
+============================================================
+{
+  "tab": "De-Identified",
+  "clarity": true,
+  "specificity": true,
+  "correctness": true,
+  "sections_present": true,
+  "no_pii": true,
+  "highlight_coverage": "80%",
+  "readability_score": 32.09,
+  "safety_validation": "Yes, the patient is medically safe to discharge. The patient underwent successful treatment for their myocardial infarction, showed improvement in symptoms, and remained stable throughout their hospital stay. They have been educated about their medication regimen and have a follow-up plan in place.",
+  "timestamp": "2025-04-13 17:11:17",
+  "filename": "data_2.json"
+}
+============================================================
+[SUMMARY GENERATED] 2025-04-13 17:11:52.607817
+------------------------------------------------------------
+FILE: data_4.json
+SYSTEM PROMPT:
+Write a clear and complete discharge summary for the patient described in this data.
+USER PROMPT:
+[None]
+FULL PROMPT SENT TO LLM:
+Write a clear and complete discharge summary for the patient described in this data.
+OUTPUT (REDACTED):
+**Patient Information:**  
+REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER who was admitted on 2024-03-10 and discharged on 2024-03-12.
+
+**Diagnosis:**  
+The patient was diagnosed with ST elevation (STEMI) myocardial infarction involving the left main coronary artery.
+
+**Summary of Care:**  
+Upon arrival, REDACTED_NAME presented with symptoms of shortness of breath and chest pain. An ECG revealed ST elevation in leads v5-6, indicative of a myocardial infarction. According to local hospital guidelines, percutaneous coronary intervention (PCI) was indicated. However, due to logistical issues, such as inability to contact the cath lab and an unresponsive cardio team, we were unable to carry out the procedure. The patient was monitored closely with repeated ECGs, which showed persistent ST elevation. The patient received symptom relief through medications including Morphine for pain, Oxygen for low oxygen saturation, Nitroglycerin for persistent chest pain, and Aspirin to reduce clotting. On 2024-03-12, the patient requested to be discharged as their chest pain had resolved.
+
+**Disposition:**  
+At the time of discharge, the patient reported relief from symptoms. The patient's vitals were stable and there was a noted improvement in their overall condition. 
+
+**Follow-up Plan:**  
+Given the serious nature of the diagnosis, it is crucial that the patient continues to monitor their condition closely at home and follow up with their healthcare provider regularly. A follow-up appointment should be scheduled as soon as possible for further evaluation and management.
+
+**Contact:**  
+For any concerns or emergencies, please contact our clinic immediately.  
+Sincerely,  
+REDACTED_DOCTOR
+HIGHLIGHTS:
+[{"text": "REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER who was admitted on 2024-03-10 and discharged on 2024-03-12.", "category": "patient_info"}, {"text": "The patient was diagnosed with ST elevation (STEMI) myocardial infarction involving the left main coronary artery.", "category": "diagnosis"}, {"text": "An ECG revealed ST elevation in leads v5-6, indicative of a myocardial infarction.", "category": "investigation_result"}, {"text": "The patient received symptom relief through medications including Morphine for pain, Oxygen for low oxygen saturation, Nitroglycerin for persistent chest pain, and Aspirin to reduce clotting.", "category": "medication"}, {"text": "On 2024-03-12, the patient requested to be discharged as their chest pain had resolved.", "category": "discharge_criteria"}, {"text": "At the time of discharge, the patient reported relief from symptoms. The patient's vitals were stable and there was a noted improvement in their overall condition.", "category": "recovery_status"}, {"text": "Given the serious nature of the diagnosis, it is crucial that the patient continues to monitor their condition closely at home and follow up with their healthcare provider regularly. A follow-up appointment should be scheduled as soon as possible for further evaluation and management.", "category": "followup_action"}, {"text": "For any concerns or emergencies, please contact our clinic immediately.", "category": "red_flag_instruction"}]
+SAFETY VALIDATION:
+Uncertain. 
+
+While the patient's symptoms have reportedly improved and their vitals are stable, the patient was diagnosed with a serious condition (STEMI myocardial infarction) and the recommended percutaneous coronary intervention (PCI) was not performed due to logistical issues. This could potentially leave the patient at risk. The patient should ideally be evaluated further before discharge, or at least have a clear plan for immediate follow-up care, including the postponed PCI.
+============================================================
+{
+  "tab": "De-Identified",
+  "clarity": true,
+  "specificity": true,
+  "correctness": true,
+  "sections_present": true,
+  "no_pii": true,
+  "highlight_coverage": "100%",
+  "readability_score": 28.84,
+  "safety_validation": "Uncertain. \n\nWhile the patient's symptoms have reportedly improved and their vitals are stable, the patient was diagnosed with a serious condition (STEMI myocardial infarction) and the recommended percutaneous coronary intervention (PCI) was not performed due to logistical issues. This could potentially leave the patient at risk. The patient should ideally be evaluated further before discharge, or at least have a clear plan for immediate follow-up care, including the postponed PCI.",
+  "timestamp": "2025-04-13 17:12:14",
+  "filename": "data_4.json"
+}

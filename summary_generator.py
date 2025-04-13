@@ -14,7 +14,7 @@ def few_shot_examples():
 Discharge Summary Example
 
 **Patient Information:**  
-REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER admitted on REDACTED_ADMIT_DATE and discharged on REDACTED_DISCHARGE_DATE.
+REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER admitted on 2024-01-05 and discharged on 2024-01-10.
 
 **Diagnosis:**  
 Diagnosed with lobar pneumonia, unspecified organism (ICD-10: J18.1).
@@ -38,7 +38,7 @@ REDACTED_DOCTOR
 Discharge Summary Example
 
 **Patient Information:**  
-REDACTED_NAME, a REDACTED_AGE-year-old REDACTED_GENDER, was admitted on REDACTED_ADMIT_DATE for neurological evaluation and discharged on REDACTED_DISCHARGE_DATE.
+REDACTED_NAME, a REDACTED_AGE-year-old REDACTED_GENDER, was admitted on 2024-03-12 for neurological evaluation and discharged on 2024-03-16.
 
 **Diagnosis:**  
 Intracerebral hemorrhage, unspecified (ICD-10: I61.9).
@@ -76,11 +76,11 @@ def generate_prompt(data, few_shot=True):
     ])
 
     prompt_body = f"""
-Date: REDACTED_DISCHARGE_DATE  
+Date: {data.get('discharge_date', 'Unknown')}
 Patient: REDACTED_NAME  
 Age: REDACTED_AGE  
 Gender: REDACTED_GENDER  
-Admission Date: REDACTED_ADMIT_DATE  
+Admission Date: {data.get('admit_date', '')}  
 Diagnosis: {diagnosis}  
 
 Clinical Notes:  
@@ -100,6 +100,7 @@ Please write a detailed discharge summary using the following sections in paragr
 
 Include:
 - Reasoning behind clinical decisions
+- Admission and discharge dates
 - Trends in labs/vitals without overlisting
 - Recovery status and follow-up expectations
 
@@ -129,7 +130,7 @@ def get_discharge_summary(data, api_key, few_shot=True, model="gpt-3.5-turbo", a
 
     result = response.choices[0].message.content
 
-    # Clean placeholder formatting
+    # Ensure formatting spacing
     placeholders = [
         "REDACTED_NAME", "REDACTED_AGE", "REDACTED_GENDER",
         "REDACTED_ADMIT_DATE", "REDACTED_DISCHARGE_DATE", "REDACTED_DOCTOR"

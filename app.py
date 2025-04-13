@@ -27,6 +27,7 @@ with st.sidebar:
     api_key = st.text_input("🔑 OpenAI API Key", type="password")
     model_name = st.selectbox("🧠 Model", ["gpt-3.5-turbo", "gpt-4"])
     temperature = st.slider("🌡️ Temperature", 0.0, 1.0, 0.6)
+    st.caption("📘 Temperature controls creativity: lower = more focused, higher = more diverse responses.")
 
 # --- File input ---
 st.subheader("📂 Generate Summary from Patient Record")
@@ -103,7 +104,7 @@ if generate_btn:
             st.session_state.safety_validation = safety
 
         # --- Logging (Private) ---
-        with open("logs/log_private.log", "a") as f:
+        with open("logs/log_deidentified.log", "a") as f:
             f.write("="*60 + f"\n[SUMMARY GENERATED] {datetime.now()}\n" + "-"*60 + "\n")
             f.write(f"FILE: {selected_file}\n")
             f.write(f"SYSTEM PROMPT:\n{DEFAULT_SYSTEM_PROMPT}\n")
@@ -115,7 +116,7 @@ if generate_btn:
             f.write("="*60 + "\n")
 
         # --- Logging (Personal) ---
-        with open("logs/log_personal.log", "a") as f:
+        with open("logs/log_identified.log", "a") as f:
             f.write("="*60 + f"\n[SUMMARY GENERATED] {datetime.now()}\n" + "-"*60 + "\n")
             f.write(f"FILE: {selected_file}\n")
             f.write(f"SYSTEM PROMPT:\n{DEFAULT_SYSTEM_PROMPT}\n")
@@ -131,7 +132,8 @@ if generate_btn:
         st.stop()
 # --- Choose view mode (secure rendering) ---
 st.subheader("🔒 Choose Display Mode")
-view_mode = st.selectbox("Display Format", ["Private Mode", "Personal Mode"])
+view_mode = st.selectbox("Display Format", ["De-Identified View", "Identified View"])
+st.caption("🧾 De-Identified View hides personal info. Identified View restores real names/dates after generation. No PII is ever sent to the LLM in either mode.")
 
 # --- Unified rendering function ---
 def render_summary(tab_name, state_key, log_file):
@@ -205,7 +207,8 @@ def render_summary(tab_name, state_key, log_file):
         st.success("✅ Evaluation logged.")
 
 # --- Render the selected mode only ---
-if view_mode == "Private Mode":
-    render_summary("Private", "summary_redacted", "log_private.log")
-elif view_mode == "Personal Mode":
-    render_summary("Personal", "summary_with_pii", "log_personal.log")
+if view_mode == "De-Identified View":
+    render_summary("De-Identified", "summary_redacted", "log_deidentified.log")
+elif view_mode == "Identified View":
+    render_summary("Identified", "summary_with_pii", "log_identified.log")
+

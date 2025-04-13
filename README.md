@@ -1,184 +1,196 @@
 # 🏥 LLM-Powered Discharge Summary Generator
 
-A smart, patient-friendly discharge summary generation system that uses large language models (LLMs) to create, highlight, and validate summaries from structured patient data.
-
-Built with **Streamlit** for the frontend and **OpenAI’s API** for language generation, this system aligns with best practices in clinical documentation, patient safety, and explainability.
+This is a secure, LLM-assisted prototype for generating patient discharge summaries based on structured inpatient data. The tool ensures clarity, privacy, safety, and clinical relevance in discharge documentation using OpenAI models via few-shot and chain-of-thought prompting.
 
 ---
 
-## 📄 Project Overview
+## 🧩 What This Tool Does
 
-This application automatically generates a well-structured discharge summary for a hospital patient, incorporating:
-
-- Structured clinical notes, medications, and diagnoses
-- Patient-friendly, paragraph-formatted summary using LLMs
-- Highlighting of critical clinical terms (e.g., diagnosis, follow-up)
-- Safety validation of discharge readiness using a second LLM call
-- Manual and automated evaluation metrics for completeness and correctness
-- Full PII protection through redaction and controlled reinsertion
-
-The tool supports care continuity between hospital and outpatient clinicians and improves the clarity of discharge communication for patients and families.
-
----
-
-## ✅ Key Features
-
-### 🧠 LLM-Based Summary Generation
-- Uses **few-shot learning** with **chain-of-thought prompting**
-- Includes 2 sample summaries as prompting context
-- Summarizes diagnosis, labs, medications, condition, and disposition
-- Output uses prose (not bullets) and section headers like:
-
-  ```
-  - Patient Information
-  - Diagnosis
-  - Summary of Care
-  - Disposition
-  - Follow-up Plan
-  - Contact
-  ```
+- ✅ Accepts structured inpatient JSON data as input
+- ✅ Redacts PII before generating summaries using LLMs
+- ✅ Uses prompt engineering with few-shot + chain-of-thought reasoning
+- ✅ Produces clear, paragraph-based summaries formatted by clinical section
+- ✅ Validates discharge safety with a second LLM call
+- ✅ Extracts highlights (important clinical insights) with a third LLM call
+- ✅ Allows editing and evaluation of summaries
+- ✅ Provides De-Identified and Identified viewing modes
+- ✅ Implements logging, readability scoring, and manual review checklist
 
 ---
 
-### 🖍️ Highlight Extraction (2nd LLM Call)
-- Extracts phrases like:
-  ```
-  “diagnosed with lobar pneumonia” — diagnosis
-  “5 more days” — duration
-  “CRP and WBC declining” — clinical trend
-  ```
-- Bolded in the final rendered summary for easy scanning
+## 🚀 How to Use the App
 
----
+### 🧱 Requirements
 
-### 🛡️ Discharge Safety Validation (3rd LLM Call)
-- Asks: *“Is this patient safe to discharge?”*
-- Returns “Yes”, “No”, or “Uncertain” + reasoning
-- Ensures the LLM acts as a safeguard to catch errors or inconsistencies
+- Python 3.9+
+- OpenAI API Key
+- Dependencies (install with `pip install -r requirements.txt`):
+  - `streamlit`
+  - `openai`
+  - `textstat`
 
----
-
-### 🔐 PII Protection
-- Patient names, dates of birth, and other identifiers are **redacted before sending to the LLM**
-- Redacted terms include: `REDACTED_NAME`, `REDACTED_AGE`, `REDACTED_DOCTOR`, etc.
-- PII is reinserted after generation for display only
-- Nothing personally identifiable is ever sent to OpenAI
-
----
-
-### 📊 Evaluation System
-
-Combines automatic and manual evaluation to systematically assess output quality.
-
-| Metric | Type | Description |
-|--------|------|-------------|
-| Readability | Auto | Flesch Reading Ease Score |
-| Highlight Coverage | Auto | % of expected clinical concepts present |
-| Discharge Validation | Auto | LLM determines if discharge is appropriate |
-| Evaluation Checklist | Manual | User confirms clarity, accuracy, and presence of key sections |
-| Feedback Logging | Auto | All inputs, outputs, and feedback logged to file |
-
----
-
-### 🖥️ Streamlit Frontend
-
-- Upload/select patient record (JSON)
-- Enter OpenAI API key (securely)
-- Provide a custom prompt (optional)
-- Click to generate summary
-- Edit if needed
-- See highlights, safety validation, readability, and submit feedback
-
----
-
-## 📂 Folder Structure
-
-```
-📁 discharge_summary_app/
-├── app.py                  # Main Streamlit app
-├── summary_generator.py    # LLM prompts, few-shots, highlight + safety
-├── utils.py                # Redaction, reinsertion, discharge checks
-├── data/                   # Folder for patient JSON files
-├── logs/                   # Stores summary logs + evaluation logs
-├── requirements.txt        # Dependency file
-└── README.md               # You're here
-```
-
----
-
-## 🧪 Example Workflow
-
-1. Select patient file: `data_3.json`
-2. Enter a prompt: `"Generate a discharge summary suitable for patients and outpatient clinicians."`
-3. LLM generates discharge summary
-4. Highlights like `"IV antibiotics"`, `"follow-up in 2 weeks"` are bolded
-5. System checks if discharge is medically safe
-6. You can edit the summary if needed
-7. View:
-   - Readability Score: `72.5`
-   - Highlight Coverage: `100%`
-   - LLM Validation: `"Yes — patient clinically stable for discharge"`
-8. Submit evaluation checklist (logged)
-
----
-
-## 📦 Installation
-
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/your-repo/discharge-summary-generator.git
-cd discharge-summary-generator
-```
-
-### 2. Create a virtual environment
-
-```bash
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-```
-
-### 3. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Run the app
+### 🖥️ Launch
 
 ```bash
 streamlit run app.py
 ```
 
+### 🧭 User Flow
+
+1. **Enter OpenAI API key** in the sidebar.
+2. **Choose a model** (`gpt-3.5-turbo` or `gpt-4`) and temperature.
+3. **Select a patient record JSON file** from the dropdown.
+4. **(Optional)** Add additional prompt instructions (e.g., "Emphasize follow-up care").
+5. **Click "Generate Summary"** — the app:
+    - Redacts PII
+    - Uses a few-shot + chain-of-thought prompt
+    - Sends to OpenAI LLM
+    - Inserts PII back (only for Identified View)
+6. Choose a view mode:
+    - **De-Identified View**: Hides all PII
+    - **Identified View**: Shows the restored personal info (name, gender, age, etc.)
+7. Review or edit the summary
+8. Evaluate clarity, specificity, accuracy, and PII privacy using checkboxes
+
 ---
 
-## 🔑 Requirements
+## 🔒 Privacy & Safety Implementation
+
+### 🔐 No PII Sent to LLM
+
+Before calling the LLM:
+- `name`, `age`, `gender`, `doctor name` → replaced with placeholders like `REDACTED_NAME`
+- Admission/discharge dates are retained (clinically essential, not personally identifiable)
+- Placeholders are replaced only **after** LLM output using `insert_pii()`
+
+### 🔍 Redaction Logic
+
+Implemented in `utils.py`:
+```python
+REDACTED_NAME
+REDACTED_AGE
+REDACTED_GENDER
+REDACTED_DOCTOR
+```
+
+### ✅ Identified View Only Restores PII Locally
+
+PII is inserted using:
+```python
+summary_with_pii = insert_pii(summary_redacted, patient_data)
+```
+
+### 🚫 Discharge Safeguard
+
+Before generation:
+```python
+if not is_safe_for_discharge(patient_data):
+    st.error("Patient is not medically fit for discharge.")
+    st.stop()
+```
+
+Detection checks clinical notes for:
+```
+"not safe for discharge", "condition remains critical", etc.
+```
+
+---
+
+## 🧠 Prompt Engineering
+
+### ✅ Few-Shot + Chain-of-Thought
+
+Each prompt includes:
+- Two complete discharge letter examples
+- Realistic section headers
+- Clinical logic (e.g., lab trends, interventions, recovery)
+- Explicit LLM instruction to reason step-by-step
+
+### Example Sections in Generated Output
+
+- **Patient Information**
+- **Diagnosis**
+- **Summary of Care**
+- **Disposition**
+- **Follow-up Plan**
+- **Contact**
+
+All sections are prose — no bullet points.
+
+---
+
+## 📊 Evaluation Features
+
+- **Flesch Reading Ease Score**
+- **Highlight Extraction Coverage**
+- **Discharge Safety LLM Check**
+- **Manual Evaluation Checklist**
+- Logged to:
+  - `log_deidentified.log`
+  - `log_identified.log`
+
+---
+
+## 🧪 API Usage Summary
+
+For each summary generation:
+
+| API Call | Purpose |
+|----------|---------|
+| ✅ 1st    | Generate discharge summary |
+| ✅ 2nd    | Extract key clinical highlights |
+| ✅ 3rd    | Evaluate discharge safety |
+
+---
+
+## 📦 Folder Structure
 
 ```
-streamlit
-openai>=1.0.0
-textstat
-python-dotenv (optional)
+├── app.py                    # Streamlit UI logic
+├── summary_generator.py     # LLM interaction logic
+├── utils.py                 # PII redaction/insertion + safety check
+├── data/                    # Patient JSON files
+├── logs/                    # Separate logs for private/personal views
+├── requirements.txt         # Dependencies
 ```
 
 ---
 
-## 🚀 Project Goals
+## ✅ How We Meet the Prototype Requirements
 
-- Improve discharge safety and continuity of care using LLMs
-- Support both clinicians and patients with understandable, accurate summaries
-- Encourage explainability and systematic evaluation of LLM outputs
-- Design a system aligned with **real-world healthcare** documentation standards
+| Requirement                           | Status     | Notes |
+|--------------------------------------|------------|-------|
+| LLM use with few-shot + reasoning    | ✅ Completed | Uses few-shot prompting with reasoning chain |
+| Logging prompts + responses          | ✅ Completed | Logs to separate files for private/personal |
+| Secure UI with patient file input    | ✅ Completed | All inputs handled through UI |
+| Editing and feedback mechanism       | ✅ Completed | Editable summary + checkbox feedback |
+| Safety check before generation       | ✅ Completed | No summary if "not fit for discharge" |
+| Avoid sending PII to LLM             | ✅ Completed | PII replaced before generation |
+| Show personalized output locally     | ✅ Completed | Restores PII in Identified View only |
+| Structured summary output            | ✅ Completed | Matches clinical format with prose |
+| No unnecessary labs/notes            | ✅ Completed | Prompt filters by trend, not dumps |
+| Uses 3 OpenAI API calls               | ✅ Completed | Generation + highlights + safety |
 
 ---
 
-## 📚 References
+## 🛠️ Limitations
 
-- [Geeky Medics: How to Write a Discharge Summary](https://geekymedics.com/how-to-write-a-discharge-summary/)
-- Final Project Brief: Designing Smart and Healthy Systems (90-835 Spring 2025)
+- Some safety logic depends on clinical text quality
+- Highlights are extracted by LLM and not manually verified
+- Not yet integrated with electronic health records (EHR)
+- Summaries are based on synthetic data; real-world deployment would require HIPAA compliance
 
 ---
 
-## 🧑‍💻 Authors
+## 👩‍⚕️ Stakeholders
 
-- Your Name Here
+- Clinicians needing to reduce documentation time
+- Hospitals aiming to streamline discharge workflow
+- Developers seeking safe LLM integration patterns in health tech
+
+---
+
+## 👏 Credits
+
+This project was built for the 90-835 Spring 2025 course  
+"Designing Smart and Healthy Systems"
