@@ -25,7 +25,7 @@ st.title("🏥 LLM-Powered Discharge Summary Generator")
 with st.sidebar:
     st.header("⚙️ Settings")
     api_key = st.text_input("🔑 OpenAI API Key", type="password")
-    model_name = st.selectbox("🧠 Model", ["gpt-3.5-turbo", "gpt-4"])
+    model_name = st.selectbox("🧠 Model", ["gpt-4", "gpt-3.5-turbo"])
     temperature = st.slider("🌡️ Temperature", 0.0, 1.0, 0.6)
     st.caption("📘 Temperature controls creativity: lower = more focused, higher = more diverse responses.")
 
@@ -60,7 +60,7 @@ additional_prompt = st.text_area(
     placeholder="E.g., Emphasize follow-up plans if any...",
     height=100,
 )
-st.caption("💡 If left blank, the summary will be generated with a default instruction.")
+st.caption("💡 If you leave this field empty, a default prompt will be used to generate the summary. Default Prompt: \"Write a clear and complete discharge summary for the patient described in this data.\"")
 generate_btn = st.button("📝 Generate Summary")
 # --- Session state initialization ---
 if "summary_redacted" not in st.session_state:
