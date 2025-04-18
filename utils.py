@@ -1,7 +1,10 @@
 import copy
 
-def is_safe_for_discharge(data):
-    """Detect critical status or discharge concerns from any notes."""
+def is_safe_for_discharge(data, recent_limit=2):
+    """
+    Checks only the most recent N notes for discharge-blocking phrases.
+    This prevents false negatives if patient status improved later.
+    """
     discharge_warning_phrases = [
         "not safe for discharge",
         "condition remains critical",
@@ -11,8 +14,14 @@ def is_safe_for_discharge(data):
     ]
 
     all_notes = data.get("notes", []) + data.get("ward_round_notes", [])
+    # Sort by date (descending) and get the most recent N notes
+    recent_notes = sorted(
+        all_notes,
+        key=lambda x: x.get("date", "") + x.get("time", ""),
+        reverse=True
+    )[:recent_limit]
 
-    for note in all_notes:
+    for note in recent_notes:
         content = note.get("content") or note.get("note", "")
         for phrase in discharge_warning_phrases:
             if phrase in content.lower():
@@ -29,10 +38,6 @@ def redact_pii(data):
         redacted["patient_demographics"]["gender"] = "REDACTED_GENDER"
         redacted["patient_demographics"]["age"] = "REDACTED_AGE"
 
-    # Keep admission/discharge dates visible (do NOT redact)
-    # redacted["admit_date"] = "REDACTED_ADMIT_DATE"
-    # redacted["discharge_date"] = "REDACTED_DISCHARGE_DATE"
-
     # Redact note authors
     for note in redacted.get("notes", []):
         if "author" in note:
@@ -46,7 +51,7 @@ def redact_pii(data):
 
 def insert_pii(text, data):
     """Replaces placeholders with actual patient information (for personal mode display)."""
-    patient = patient = data.get("patient_demographics", {})
+    patient = data.get("patient_demographics", {})
     replacements = {
         "REDACTED_NAME": patient.get("name", ""),
         "REDACTED_GENDER": patient.get("gender", ""),

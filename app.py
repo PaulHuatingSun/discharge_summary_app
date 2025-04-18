@@ -62,6 +62,7 @@ additional_prompt = st.text_area(
 )
 st.caption("💡 If you leave this field empty, a default prompt will be used to generate the summary. Default Prompt: \"Write a clear and complete discharge summary for the patient described in this data.\"")
 generate_btn = st.button("📝 Generate Summary")
+
 # --- Session state initialization ---
 if "summary_redacted" not in st.session_state:
     st.session_state.summary_redacted = ""
@@ -77,8 +78,41 @@ if generate_btn:
     if not api_key:
         st.warning("Please enter your OpenAI API key.")
         st.stop()
-    if not is_safe_for_discharge(patient_data):
-        st.error("❌ Patient is not medically fit for discharge.")
+
+    # Step 1: Keyword-based pre-check on recent notes
+    keyword_flagged = not is_safe_for_discharge(patient_data)
+
+    if keyword_flagged:
+        # Step 2: LLM evaluates same notes (for transparency, not override)
+        recent_notes = sorted(
+            patient_data.get("notes", []) + patient_data.get("ward_round_notes", []),
+            key=lambda x: x.get("date", "") + x.get("time", ""),
+            reverse=True
+        )[:2]
+        recent_text = "\n\n".join(note.get("content", note.get("note", "")) for note in recent_notes)
+
+        llm_check_prompt = f"""
+Based on the following clinical notes, is the patient currently medically safe for discharge?
+Return one of: "Yes", "No", or "Uncertain" followed by a brief explanation.
+
+NOTES:
+{recent_text}
+"""
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "user", "content": llm_check_prompt}],
+                temperature=0
+            )
+            llm_verdict = response.choices[0].message.content.strip()
+        except Exception as e:
+            llm_verdict = "⚠️ LLM check failed: " + str(e)
+
+        st.session_state.safety_validation = llm_verdict
+        st.error("❌ Patient is not medically fit for discharge (based on clinical note review).")
+        st.markdown(f"**LLM Opinion:** {llm_verdict}")
         st.stop()
 
     try:
@@ -94,9 +128,16 @@ if generate_btn:
                 model=model_name,
                 additional_instruction=combined_prompt,
             )
+
+            # Step 3: Post-generation LLM validation
+            safety = validate_discharge_safety(summary_redacted, api_key)
+            if "no" in safety.lower():
+                st.error("❌ LLM evaluation of the discharge summary indicates the patient is not safe to discharge.")
+                st.session_state.safety_validation = safety
+                st.stop()
+
             summary_with_pii = insert_pii(summary_redacted, patient_data)
             highlights = extract_highlights(summary_redacted, api_key)
-            safety = validate_discharge_safety(summary_redacted, api_key)
 
             st.session_state.summary_redacted = summary_redacted
             st.session_state.summary_with_pii = summary_with_pii
@@ -130,6 +171,7 @@ if generate_btn:
     except OpenAIError as e:
         st.error("❌ OpenAI API Error. Please check your key and try again.")
         st.stop()
+
 # --- Choose view mode (secure rendering) ---
 st.subheader("🔒 Choose Display Mode")
 view_mode = st.selectbox("Display Format", ["De-Identified View", "Identified View"])
@@ -211,4 +253,3 @@ if view_mode == "De-Identified View":
     render_summary("De-Identified", "summary_redacted", "log_deidentified.log")
 elif view_mode == "Identified View":
     render_summary("Identified", "summary_with_pii", "log_identified.log")
-
