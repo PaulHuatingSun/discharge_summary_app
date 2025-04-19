@@ -1,4 +1,3 @@
-# FULL UPDATED app.py
 import os
 import streamlit as st
 import textstat
@@ -20,6 +19,17 @@ DEFAULT_SYSTEM_PROMPT = "Write a clear and complete discharge summary in paragra
 st.set_page_config(page_title="Discharge Summary Generator", layout="wide")
 st.title("🏥 LLM-Powered Discharge Summary Generator")
 
+# --- Session Initialization ---
+if "last_selected_file" not in st.session_state:
+    st.session_state.last_selected_file = ""
+if "allow_override" not in st.session_state:
+    st.session_state.allow_override = False
+if "generate_clicked" not in st.session_state:
+    st.session_state.generate_clicked = False
+if "can_generate" not in st.session_state:
+    st.session_state.can_generate = False
+
+# --- Sidebar ---
 with st.sidebar:
     st.header("⚙️ Settings")
     api_key = st.text_input("🔑 OpenAI API Key", type="password")
@@ -29,12 +39,9 @@ with st.sidebar:
     temperature = st.slider("🌡️ Temperature", 0.0, 1.0, 0.6)
     st.caption("📘 Temperature controls creativity: lower = more focused, higher = more diverse responses.")
 
+# --- File Selection ---
 st.subheader("📂 Generate Summary from Patient Record")
 json_files = [f for f in os.listdir("data") if f.endswith(".json")]
-
-if "last_selected_file" not in st.session_state:
-    st.session_state.last_selected_file = ""
-
 selected_file = st.selectbox("Select patient data file", json_files)
 
 if selected_file != st.session_state.last_selected_file:
@@ -43,30 +50,41 @@ if selected_file != st.session_state.last_selected_file:
     st.session_state.summary_with_pii = ""
     st.session_state.highlights = []
     st.session_state.safety_validation = ""
+    st.session_state.allow_override = False
+    st.session_state.generate_clicked = False
+    st.session_state.can_generate = False
     for key in list(st.session_state.keys()):
         if key.endswith("_edit_mode") or key.endswith("_editor"):
             del st.session_state[key]
 
+# --- Load and Redact Data ---
 data_path = os.path.join("data", selected_file)
 patient_data = load_patient_data(data_path)
 redacted_data = redact_pii(patient_data)
 
+# --- Prompt Setup ---
 st.radio("Prompt Method", ["Few-shot with Chain-of-Thought reasoning"], index=0, disabled=True)
 additional_prompt = st.text_area(
     "📝 Optional: Add extra instruction to guide the LLM",
     placeholder="E.g., Emphasize follow-up plans if any...",
     height=100,
 )
-st.caption("💡 If you leave this field empty, a default prompt will be used to generate the summary. Default Prompt: \"Write a clear and complete discharge summary in paragraph form for the patient described in this data. Do not use bullet points.\"")
-generate_btn = st.button("📝 Generate Summary")
+st.caption("💡 If you leave this field empty, a default prompt will be used to generate the summary.")
 
-if generate_btn:
+# --- Trigger Button ---
+if st.button("📝 Generate Summary"):
+    st.session_state.generate_clicked = True
+
+# --- Safety & Verdict ---
+if st.session_state.generate_clicked:
     if not api_key:
         st.warning("Please enter your OpenAI API key.")
+        st.session_state.generate_clicked = False
         st.stop()
 
     if not is_safe_for_discharge(patient_data):
         st.error("❌ Keyword-based screen: Patient is not medically safe for discharge (pre-screen).")
+        st.session_state.generate_clicked = False
         st.stop()
 
     safety_pre = validate_discharge_safety(redacted_data, api_key)
@@ -74,19 +92,26 @@ if generate_btn:
     st.markdown(safety_pre)
 
     verdict_match = re.search(r"(?i)^answer:\s*(yes|no|uncertain)", safety_pre, re.MULTILINE)
-    allow_generation = True
     if verdict_match:
         final_verdict = verdict_match.group(1).capitalize()
         badge_color = {"Yes": "#28a745", "No": "#dc3545", "Uncertain": "#ffc107"}.get(final_verdict, "#6c757d")
         st.markdown(f"<div style='background-color:{badge_color}; color:white; padding:6px 12px; border-radius:6px; display:inline-block;'>🩺 LLM Verdict: {final_verdict}</div>", unsafe_allow_html=True)
+
         if final_verdict in ["No", "Uncertain"]:
-            allow_generation = st.checkbox("⚠️ Override and generate summary anyway")
-            if not allow_generation:
+            st.session_state.allow_override = st.checkbox("⚠️ Override and generate summary anyway", value=st.session_state.allow_override)
+            if st.session_state.allow_override:
+                st.session_state.can_generate = True
+            else:
                 st.stop()
+        else:
+            st.session_state.can_generate = True
     else:
         st.warning("⚠️ Could not determine LLM discharge verdict. Please review manually.")
+        st.session_state.generate_clicked = False
         st.stop()
 
+# --- Summary Generation ---
+if st.session_state.generate_clicked and st.session_state.can_generate:
     try:
         combined_prompt = DEFAULT_SYSTEM_PROMPT
         if additional_prompt.strip():
@@ -109,30 +134,32 @@ if generate_btn:
             st.session_state.highlights = highlights
             st.session_state.safety_validation = safety_post
 
-        for name, output, log_file in [
-            ("REDACTED", summary_redacted, "logs/log_deidentified.log"),
-            ("WITH PII", summary_with_pii, "logs/log_identified.log"),
-        ]:
-            with open(log_file, "a", encoding="utf-8") as f:
-                f.write("="*60 + f"\n[SUMMARY GENERATED] {datetime.now()} - {name}\n" + "-"*60 + "\n")
-                f.write(f"FILE: {selected_file}\n")
-                f.write(f"SYSTEM PROMPT:\n{DEFAULT_SYSTEM_PROMPT}\n")
-                f.write(f"USER PROMPT:\n{additional_prompt.strip() or '[None]'}\n")
-                f.write(f"FULL PROMPT SENT TO LLM:\n{combined_prompt}\n")
-                f.write(f"OUTPUT:\n{output}\n")
-                f.write(f"HIGHLIGHTS:\n{json.dumps(highlights)}\n")
-                f.write(f"SAFETY VALIDATION (POST):\n{safety_post}\n")
-                f.write("="*60 + "\n")
+            for name, output, log_file in [
+                ("REDACTED", summary_redacted, "logs/log_deidentified.log"),
+                ("WITH PII", summary_with_pii, "logs/log_identified.log"),
+            ]:
+                with open(log_file, "a", encoding="utf-8") as f:
+                    f.write("="*60 + f"\n[SUMMARY GENERATED] {datetime.now()} - {name}\n" + "-"*60 + "\n")
+                    f.write(f"FILE: {selected_file}\n")
+                    f.write(f"SYSTEM PROMPT:\n{DEFAULT_SYSTEM_PROMPT}\n")
+                    f.write(f"USER PROMPT:\n{additional_prompt.strip() or '[None]'}\n")
+                    f.write(f"FULL PROMPT SENT TO LLM:\n{combined_prompt}\n")
+                    f.write(f"OUTPUT:\n{output}\n")
+                    f.write(f"HIGHLIGHTS:\n{json.dumps(highlights)}\n")
+                    f.write(f"SAFETY VALIDATION (POST):\n{safety_post}\n")
+                    f.write("="*60 + "\n")
 
-    except OpenAIError as e:
+    except OpenAIError:
         st.error("❌ OpenAI API Error. Please check your key and try again.")
-        st.stop()
+    finally:
+        st.session_state.generate_clicked = False
+        st.session_state.can_generate = False
 
+# --- View & Evaluation ---
 st.subheader("🔒 Choose Display Mode")
 view_mode = st.selectbox("Display Format", ["De-Identified View", "Identified View"])
 st.caption("🧾 De-Identified View hides personal info. Identified View restores real names/dates after generation. No PII is ever sent to the LLM in either mode.")
 
-# --- Rendering Function ---
 def render_summary(tab_name, state_key, log_file):
     summary_text = st.session_state.get(state_key, "")
     st.markdown(f"### {tab_name} Summary")
