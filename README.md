@@ -82,10 +82,6 @@ Located in `utils.py`, the redaction logic:
 - Keeps original data locally
 - Uses a dedicated `insert_pii()` function to re-populate the summary **only after the LLM has responded**, ensuring data never leaves the local machine
 
-```python
-summary_with_pii = insert_pii(summary_redacted, patient_data)
-```
-
 This happens **only** in the Identified View. De-Identified View always keeps placeholders.
 
 ### 🧠 View Modes (User-Controlled Privacy)
