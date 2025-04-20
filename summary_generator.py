@@ -11,7 +11,7 @@ def load_patient_data(filepath):
 
 def few_shot_examples():
     return """
-Discharge Summary Example (with Chain-of-Thought Reasoning)
+Discharge Summary Example (Narrative Style)
 
 **Patient Information:**  
 REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER admitted on 2024-01-05 and discharged on 2024-01-10.
@@ -20,29 +20,22 @@ REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER admitted on 2024-01-05 
 Lobar pneumonia, unspecified organism (ICD-10: J18.1)
 
 **Summary of Care:**  
-The patient presented with fever, productive cough, and shortness of breath.  
-→ A chest X-ray showed left lower lobe consolidation, confirming pneumonia.  
-→ Blood tests revealed elevated WBC and CRP, consistent with bacterial infection.  
-→ IV Amoxicillin and Paracetamol were started for infection and fever control.  
-→ Over 48 hours, the patient's symptoms improved significantly and vitals stabilized.  
-→ Antibiotics were transitioned to oral form by Day 3 due to clinical stability.
+The patient presented with fever, productive cough, and shortness of breath. Chest X-ray revealed left lower lobe consolidation, confirming pneumonia. Blood tests showed elevated WBC and CRP. The patient was treated with IV Amoxicillin and Paracetamol. Over the next two days, symptoms improved, temperature normalized, and inflammatory markers declined. By day 3, the patient was clinically stable and transitioned to oral antibiotics.
 
 **Disposition:**  
-→ At discharge, the patient was afebrile for more than 48 hours, breathing normally, and tolerating oral intake.  
-→ The patient was considered medically stable and discharged with instructions.
+At discharge, the patient was afebrile for over 48 hours, breathing comfortably, and tolerating oral intake. The care team determined the patient was medically fit for discharge.
 
 **Follow-up Plan:**  
-→ Complete oral antibiotics for 5 more days.  
-→ Follow-up scheduled in 2 weeks.
+The patient was advised to complete the remaining five-day course of oral antibiotics and attend a follow-up clinic appointment in two weeks.
 
 **Contact:**  
-For concerns, contact the clinic.  
+For any concerns, the patient was instructed to contact the clinic.  
 Sincerely,  
 REDACTED_DOCTOR
 
 ---
 
-Discharge Summary Example (with Chain-of-Thought Reasoning)
+Discharge Summary Example (Narrative Style)
 
 **Patient Information:**  
 REDACTED_NAME, a REDACTED_AGE-year-old REDACTED_GENDER, was admitted on 2024-03-12 and discharged on 2024-03-16.
@@ -51,31 +44,22 @@ REDACTED_NAME, a REDACTED_AGE-year-old REDACTED_GENDER, was admitted on 2024-03-
 Intracerebral hemorrhage, unspecified (ICD-10: I61.9)
 
 **Summary of Care:**  
-→ The patient presented with confusion and right-sided weakness following a fall.  
-→ CT imaging confirmed a right hemispheric intracerebral hemorrhage.  
-→ Mannitol was administered to reduce cerebral edema, and antihypertensives were used to control blood pressure.  
-→ Neurological status was closely monitored with serial GCS scoring and vital signs.  
-→ Over 72 hours, GCS remained stable at 14, and no further neurological deterioration was noted.  
-→ The patient showed gradual improvement in orientation and physical mobility.
+The patient arrived with confusion and right-sided weakness after a fall. CT imaging confirmed a right hemispheric intracerebral hemorrhage. Mannitol was administered for cerebral edema, and antihypertensives were initiated. The patient's neurological status remained stable with no further deterioration. The patient demonstrated gradual improvement in orientation and mobility during the stay.
 
 **Disposition:**  
-→ With stable neurological findings and no signs of worsening edema, the patient was deemed clinically stable.  
-→ Family members were educated on home safety measures.  
-→ The patient was discharged to home care under supervision.
+Given the patient's stable vitals and neurological findings, discharge to home care under supervision was considered appropriate. The family received instructions on home safety.
 
 **Follow-up Plan:**  
-→ Outpatient neurology follow-up in one week.  
-→ Repeat CT scan ordered in 2 weeks.  
-→ Family advised on red flag symptoms (e.g., headache, confusion, vomiting).
+A neurology follow-up was scheduled for one week post-discharge. A repeat CT scan was ordered for two weeks later. The family was advised to watch for signs such as confusion, headache, or vomiting.
 
 **Contact:**  
-Neurology clinic contact provided for emergencies.  
+The neurology clinic contact was provided for urgent concerns.  
 Sincerely,  
 REDACTED_DOCTOR
 
 ---
 
-Discharge Summary Example (with Chain-of-Thought Reasoning)
+Discharge Summary Example (Narrative Style)
 
 **Patient Information:**  
 REDACTED_NAME, a REDACTED_AGE-year-old REDACTED_GENDER, was admitted on 2024-03-08 and discharged on 2024-03-12.
@@ -84,24 +68,16 @@ REDACTED_NAME, a REDACTED_AGE-year-old REDACTED_GENDER, was admitted on 2024-03-
 ST-elevation myocardial infarction (STEMI) — no PCI performed
 
 **Summary of Care:**  
-→ The patient presented with chest pain and ECG showing ST-elevation.  
-→ Labs showed elevated troponin confirming myocardial injury.  
-→ Cardiology was contacted, but PCI was not performed due to service limitations.  
-→ Instead, the patient was treated medically with aspirin, heparin, and supportive care.  
-→ By Day 3, the chest pain had resolved, and vitals were stable.  
-→ The patient expressed a strong desire to be discharged and declined further hospital stay.  
-→ Risk of early discharge was discussed, and the patient acknowledged understanding.
+The patient presented with chest pain and ECG findings consistent with STEMI. Troponin levels were elevated. Due to unavailability of PCI at the facility, the patient was managed medically with aspirin, heparin, and supportive therapy. Symptoms resolved by Day 3, and the patient remained hemodynamically stable. After counseling on the risks, the patient chose to be discharged early and acknowledged the decision.
 
 **Disposition:**  
-→ While guideline-based PCI was not administered, the patient's symptoms resolved, and discharge was deemed acceptable under the circumstances.  
-→ The care team documented the system-level barriers and patient’s informed decision.
+Despite the lack of PCI, the patient had symptom resolution and stable vitals. The care team documented the patient’s informed choice and considered the discharge appropriate given the circumstances.
 
 **Follow-up Plan:**  
-→ Outpatient cardiology appointment arranged within 1 week.  
-→ Patient instructed to return immediately if chest pain or symptoms recur.
+An outpatient cardiology visit was scheduled within one week. The patient was instructed to return if symptoms like chest pain recur.
 
 **Contact:**  
-Contact cardiology department for any concerns.  
+Contact the cardiology department for post-discharge concerns.  
 Sincerely,  
 REDACTED_DOCTOR
 """.strip()

@@ -19,7 +19,6 @@ DEFAULT_SYSTEM_PROMPT = "Write a clear and complete discharge summary in paragra
 st.set_page_config(page_title="Discharge Summary Generator", layout="wide")
 st.title("🏥 LLM-Powered Discharge Summary Generator")
 
-# --- Session Initialization ---
 if "last_selected_file" not in st.session_state:
     st.session_state.last_selected_file = ""
 if "allow_override" not in st.session_state:
@@ -29,7 +28,6 @@ if "generate_clicked" not in st.session_state:
 if "can_generate" not in st.session_state:
     st.session_state.can_generate = False
 
-# --- Sidebar ---
 with st.sidebar:
     st.header("⚙️ Settings")
     api_key = st.text_input("🔑 OpenAI API Key", type="password")
@@ -39,7 +37,6 @@ with st.sidebar:
     temperature = st.slider("🌡️ Temperature", 0.0, 1.0, 0.6)
     st.caption("📘 Temperature controls creativity: lower = more focused, higher = more diverse responses.")
 
-# --- File Selection ---
 st.subheader("📂 Generate Summary from Patient Record")
 json_files = [f for f in os.listdir("data") if f.endswith(".json")]
 selected_file = st.selectbox("Select patient data file", json_files)
@@ -57,25 +54,17 @@ if selected_file != st.session_state.last_selected_file:
         if key.endswith("_edit_mode") or key.endswith("_editor"):
             del st.session_state[key]
 
-# --- Load and Redact Data ---
 data_path = os.path.join("data", selected_file)
 patient_data = load_patient_data(data_path)
 redacted_data = redact_pii(patient_data)
 
-# --- Prompt Setup ---
 st.radio("Prompt Method", ["Few-shot with Chain-of-Thought reasoning"], index=0, disabled=True)
-additional_prompt = st.text_area(
-    "📝 Optional: Add extra instruction to guide the LLM",
-    placeholder="E.g., Emphasize follow-up plans if any...",
-    height=100,
-)
+additional_prompt = st.text_area("📝 Optional: Add extra instruction to guide the LLM", placeholder="E.g., Emphasize follow-up plans if any...", height=100)
 st.caption("💡 If you leave this field empty, a default prompt will be used to generate the summary.")
 
-# --- Trigger Button ---
 if st.button("📝 Generate Summary"):
     st.session_state.generate_clicked = True
 
-# --- Safety & Verdict ---
 if st.session_state.generate_clicked:
     if not api_key:
         st.warning("Please enter your OpenAI API key.")
@@ -110,7 +99,6 @@ if st.session_state.generate_clicked:
         st.session_state.generate_clicked = False
         st.stop()
 
-# --- Summary Generation ---
 if st.session_state.generate_clicked and st.session_state.can_generate:
     try:
         combined_prompt = DEFAULT_SYSTEM_PROMPT
@@ -151,9 +139,6 @@ if st.session_state.generate_clicked and st.session_state.can_generate:
 
     except OpenAIError:
         st.error("❌ OpenAI API Error. Please check your key and try again.")
-    finally:
-        st.session_state.generate_clicked = False
-        st.session_state.can_generate = False
 
 # --- View & Evaluation ---
 st.subheader("🔒 Choose Display Mode")
@@ -181,10 +166,12 @@ def render_summary(tab_name, state_key, log_file):
     else:
         display_text = summary_text
         for section in ["Patient Information:", "Diagnosis:", "Summary of Care:", "Disposition:", "Follow-up Plan:", "Contact:"]:
-            display_text = re.sub(rf"(?<!\*)({re.escape(section)})", r"**\1**", display_text)
+            display_text = re.sub(rf"(^|\n)({re.escape(section)})", r"\1**\2**", display_text)
         for item in st.session_state.highlights:
             phrase = re.escape(item["text"])
-            display_text = re.sub(rf"(?<!\*)({phrase})(?!\*)", r"**\1**", display_text, flags=re.IGNORECASE)
+            pattern = rf"(?<!\w)({phrase})(?!\w)"
+            display_text = re.sub(pattern, r"**\1**", display_text, flags=re.IGNORECASE)
+
 
         st.markdown(display_text, unsafe_allow_html=True)
 
@@ -204,21 +191,38 @@ def render_summary(tab_name, state_key, log_file):
         st.markdown("### 🛡️ Safety Validation (LLM Response After Generation)")
         st.markdown(st.session_state.safety_validation)
 
-    st.markdown("### ✅ Evaluation Checklist")
-    clarity = st.checkbox(f"{tab_name} - Clarity")
-    specificity = st.checkbox(f"{tab_name} - Specificity")
-    accuracy = st.checkbox(f"{tab_name} - Medically Accurate")
-    sections = st.checkbox(f"{tab_name} - Has All Sections")
-    no_pii = st.checkbox(f"{tab_name} - No PII sent to LLM")
+    st.markdown("### ✅ Evaluation Ratings (1 = Poor, 5 = Excellent)")
+    st.caption("Use the sliders below to rate each aspect of the summary. Ratings help us evaluate quality and improve the generation system.")
+
+    clarity = st.slider(
+        f"{tab_name} - Clarity", 1, 5, 3,
+        help="How easy is the summary to read and understand? 1 = unclear/confusing, 5 = very clear and concise."
+    )
+    specificity = st.slider(
+        f"{tab_name} - Specificity", 1, 5, 3,
+        help="Does the summary include specific details (labs, symptoms, treatments)? 1 = vague, 5 = highly detailed."
+    )
+    accuracy = st.slider(
+        f"{tab_name} - Medical Accuracy", 1, 5, 3,
+        help="Are the clinical statements and facts correct? 1 = incorrect, 5 = completely accurate."
+    )
+    sections = st.slider(
+        f"{tab_name} - Has All Required Sections", 1, 5, 3,
+        help="Does the summary include all necessary parts (Diagnosis, Summary of Care, Follow-up)? 1 = missing most, 5 = all included."
+    )
+    no_pii = st.slider(
+        f"{tab_name} - No PII sent to LLM", 1, 5, 3,
+        help="Was patient-identifiable information excluded from LLM input? 1 = PII present, 5 = fully anonymized."
+    )
 
     if st.button(f"📩 Submit Evaluation ({tab_name})", key=f"{tab_name}_submit"):
         eval_data = {
             "tab": tab_name,
-            "clarity": clarity,
-            "specificity": specificity,
-            "correctness": accuracy,
-            "sections_present": sections,
-            "no_pii": no_pii,
+            "clarity_rating": clarity,
+            "specificity_rating": specificity,
+            "correctness_rating": accuracy,
+            "sections_rating": sections,
+            "no_pii_rating": no_pii,
             "highlight_coverage": f"{int(coverage * 100)}%",
             "readability_score": readability,
             "safety_validation": st.session_state.safety_validation,
@@ -233,3 +237,7 @@ if view_mode == "De-Identified View":
     render_summary("De-Identified", "summary_redacted", "log_deidentified.log")
 elif view_mode == "Identified View":
     render_summary("Identified", "summary_with_pii", "log_identified.log")
+
+# ✅ Reset flags AFTER rendering
+st.session_state.generate_clicked = False
+st.session_state.can_generate = False
