@@ -1404,3 +1404,41 @@ Answer: Yes
 Reasoning: 
 Although the patient did not receive the standard of care for STEMI, which is PCI, due to system limitations, the patient's symptoms resolved with medical management. The patient was also informed of the risks associated with early discharge and expressed a preference for it. The patient was advised to follow up with a cardiologist within a week and to return to the emergency department immediately if symptoms recur. Therefore, the discharge is medically explainable given the context.
 ============================================================
+============================================================
+[SUMMARY GENERATED] 2025-04-20 16:36:59.460294 - WITH PII
+------------------------------------------------------------
+FILE: data_4.json
+SYSTEM PROMPT:
+Write a clear and complete discharge summary in paragraph form for the patient described in this data. Do not use bullet points.
+USER PROMPT:
+[None]
+FULL PROMPT SENT TO LLM:
+Write a clear and complete discharge summary in paragraph form for the patient described in this data. Do not use bullet points.
+OUTPUT:
+**Patient Information:**  
+Sean Doe is a 65-year-old Male who was admitted to the hospital on the 10th of March, 2024 and discharged on the 12th of March, 2024.
+
+**Diagnosis:**  
+The patient was diagnosed with ST-elevation myocardial infarction (STEMI) involving the left main coronary artery.
+
+**Summary of Care:**  
+Upon presentation, Sean Doe was experiencing shortness of breath and chest pain. An ECG confirmed the presence of ST elevations in leads V5 and V6, indicative of a STEMI. The patient was immediately admitted for further management. As per standard protocol, the patient was due for percutaneous coronary intervention (PCI). However, due to unforeseen circumstances, the catheterization lab was not accessible, and the cardiology team was unavailable. The ECG showed persistent ST elevation. Throughout the hospital stay, the patient was closely monitored, and symptomatic treatment was provided. The patient received morphine for pain relief, oxygen to maintain saturation above 90%, nitroglycerin for continued chest pain, and a single dose of aspirin. By the 12th of March, the patient reported resolution of chest pain.
+
+**Disposition:**  
+Despite the standard treatment protocol for STEMI not being fully implemented due to system limitations, the patient's chest pain resolved, and they remained hemodynamically stable throughout their stay. The patient expressed a desire for early discharge, which was granted after thorough counseling about the potential risks and acknowledgment of their decision.
+
+**Follow-up Plan:**  
+A follow-up appointment with a cardiologist has been scheduled within one week of discharge. The patient has been instructed to return to the hospital immediately if they experience recurrent chest pain or any other concerning symptoms.
+
+**Contact:**  
+The patient was advised to contact the cardiology department for any post-discharge concerns.  
+Sincerely,  
+Discharging Doctor
+HIGHLIGHTS:
+[{"text": "REDACTED_NAME is a REDACTED_AGE-year-old REDACTED_GENDER who was admitted to the hospital on the 10th of March, 2024 and discharged on the 12th of March, 2024.", "category": "patient_info"}, {"text": "The patient was diagnosed with ST-elevation myocardial infarction (STEMI) involving the left main coronary artery.", "category": "diagnosis"}, {"text": "An ECG confirmed the presence of ST elevations in leads V5 and V6, indicative of a STEMI.", "category": "investigation_result"}, {"text": "The patient received morphine for pain relief, oxygen to maintain saturation above 90%, nitroglycerin for continued chest pain, and a single dose of aspirin.", "category": "medication"}, {"text": "By the 12th of March, the patient reported resolution of chest pain.", "category": "recovery_status"}, {"text": "Despite the standard treatment protocol for STEMI not being fully implemented due to system limitations, the patient's chest pain resolved, and they remained hemodynamically stable throughout their stay.", "category": "clinical_trend"}, {"text": "The patient expressed a desire for early discharge, which was granted after thorough counseling about the potential risks and acknowledgment of their decision.", "category": "discharge_criteria"}, {"text": "A follow-up appointment with a cardiologist has been scheduled within one week of discharge.", "category": "followup_action"}, {"text": "The patient has been instructed to return to the hospital immediately if they experience recurrent chest pain or any other concerning symptoms.", "category": "red_flag_instruction"}, {"text": "The patient was advised to contact the cardiology department for any post-discharge concerns.", "category": "followup_action"}]
+SAFETY VALIDATION (POST):
+Reasoning:
+The patient presented with a STEMI and was unable to receive the standard treatment of PCI due to system limitations. However, the patient's symptoms resolved, they remained hemodynamically stable, and they were closely monitored throughout their stay. The patient was counseled about the potential risks of early discharge and made an informed decision to leave. A follow-up appointment was scheduled, and the patient was instructed to return to the hospital if symptoms recurred. Given these circumstances, the discharge is medically explainable.
+
+Answer: Yes
+============================================================

@@ -238,6 +238,6 @@ if view_mode == "De-Identified View":
 elif view_mode == "Identified View":
     render_summary("Identified", "summary_with_pii", "log_identified.log")
 
-# ✅ Reset flags AFTER rendering
+# Reset flags AFTER rendering
 st.session_state.generate_clicked = False
 st.session_state.can_generate = False
